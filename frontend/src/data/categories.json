@@ -1,0 +1,96 @@
+[
+  {
+    "name": "প্রচ্ছদ",
+    "slug": "home"
+  },
+  {
+    "name": "তারুণ্য",
+    "slug": "youth"
+  },
+  {
+    "name": "জাতীয়",
+    "slug": "national",
+    "children": [
+      { "name": "ঢাকা", "slug": "dhaka" },
+      { "name": "সিলেট", "slug": "sylhet" },
+      { "name": "চট্টোগ্রাম", "slug": "chattogram" },
+      { "name": "রাজশাহী", "slug": "rajshahi" },
+      { "name": "খুলনা", "slug": "khulna" },
+      { "name": "বরিশাল", "slug": "barishal" },
+      { "name": "ময়মনসিংহ", "slug": "mymensingh" }
+    ]
+  },
+  {
+    "name": "রাজনীতি",
+    "slug": "politics",
+    "children": [
+      { "name": "অন্যান্য", "slug": "other-politics" },
+      { "name": "এনসিপি", "slug": "ncp" },
+      { "name": "জাতীয় পার্টি", "slug": "jatiyo-party" },
+      { "name": "জামায়েত", "slug": "jamaat" },
+      { "name": "বিএনপি", "slug": "bnp" },
+      { "name": "হেফাজতে ইসলামী বাংলাদেশ", "slug": "hefazat-e-islam-bangladesh" }
+    ]
+  },
+  {
+    "name": "আন্তর্জাতিক",
+    "slug": "international",
+    "children": [
+      { "name": "ভারত", "slug": "india" },
+      { "name": "পাকিস্তান", "slug": "pakistan" },
+      { "name": "অস্ট্রেলিয়া", "slug": "australia" },
+      { "name": "এশিয়া", "slug": "asia" },
+      { "name": "মধ্যপ্রাচ্য", "slug": "middle-east" },
+      { "name": "আফ্রিকা", "slug": "africa" },
+      { "name": "ইউরোপ", "slug": "europe" },
+      { "name": "উত্তর-আমেরিকা", "slug": "north-america" },
+      { "name": "দক্ষিণ-আমেরিকা", "slug": "south-america" },
+      { "name": "মালোয়েশিয়া", "slug": "malaysia" },
+      { "name": "যুক্তরাজ্য", "slug": "united-kingdom" },
+      { "name": "যুক্তরাষ্ট্র", "slug": "united-states" },
+      { "name": "অন্যান্য", "slug": "other-international" }
+    ]
+  },
+  {
+    "name": "ইসলাম",
+    "slug": "islam",
+    "children": [
+      { "name": "কোরআন", "slug": "quran" },
+      { "name": "হাদিস", "slug": "hadith" },
+      { "name": "রমজান", "slug": "ramadan" },
+      { "name": "ইতিহাস ও ঐতিহ্য", "slug": "history-tradition" },
+      { "name": "ইসলামী ব্যাক্তিত্ব", "slug": "islamic-personality" },
+      { "name": "ইজতেমা", "slug": "ijtema" },
+      { "name": "মাসালা-মাসায়েল", "slug": "jurisprudence" },
+      { "name": "মুসলিম বিশ্ব", "slug": "muslim-world" },
+      { "name": "ছোটদের ইসলামী গল্প", "slug": "islamic-stories-for-kids" },
+      { "name": "সাক্ষাৎকার", "slug": "interview" },
+      { "name": "মিডিয়া", "slug": "media" },
+      { "name": "অন্যান্য", "slug": "other-islam" }
+    ]
+  },
+  {
+    "name": "খেলাধুলা",
+    "slug": "sports"
+  },
+  {
+    "name": "শিক্ষাঙ্গন",
+    "slug": "education"
+  },
+  {
+    "name": "বাণিজ্য",
+    "slug": "commerce"
+  },
+  {
+    "name": "প্রবাস",
+    "slug": "expatriate"
+  },
+  {
+    "name": "বিবিধ",
+    "slug": "miscellaneous",
+    "children": [
+      { "name": "তথ্য – প্রযুক্তি", "slug": "information-technology" },
+      { "name": "বিনোদন", "slug": "entertainment" }
+    ]
+  }
+]

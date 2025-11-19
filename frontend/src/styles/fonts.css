@@ -1,0 +1,38 @@
+/* frontend/src/styles/fonts.css */
+
+@font-face {
+  font-family: 'Merriweather Sans';
+  src: url('../assets/fonts/merriweather-sans/MerriweatherSans-VariableFont_wght.ttf') format('truetype');
+  font-weight: 1 1000; /* Variable font weight range */
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  src: url('../assets/fonts/noto-sans-bengali/NotoSansBengali-VariableFont_wdth,wght.ttf') format('truetype');
+  font-weight: 1 1000; /* Variable font weight range */
+  font-display: swap;
+  /* Unicode range for Bengali script */
+  unicode-range: U+0980-09FF;
+}
+
+/* Apply the fonts globally */
+.v-application {
+  font-family: 'Merriweather Sans', 'Noto Sans Bengali', sans-serif !important;
+}
+
+/* You can also target specific elements if needed, Vuetify components often need specific overrides */
+.v-application .text-h1,
+.v-application .text-h2,
+.v-application .text-h3,
+.v-application .text-h4,
+.v-application .text-h5,
+.v-application .text-h6,
+.v-application .v-card-title,
+.v-application .v-card-subtitle,
+.v-application .v-card-text,
+.v-application .v-btn,
+.v-application .v-list-item-title,
+.v-application span {
+    font-family: 'Merriweather Sans', 'Noto Sans Bengali', sans-serif !important;
+}

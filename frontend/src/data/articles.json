@@ -1,0 +1,87 @@
+[
+  {
+    "id": 1,
+    "title": "অননুমোদিত বিজ্ঞাপন উপকরণের জন্য জরিমানা, উচ্ছেদ ও আইনি ব্যবস্থার সতর্কতা দিয়েছে সিটি করপোরেশন।",
+    "category": "জাতীয়",
+    "date": "November 19, 2025",
+    "snippet": "ঢাকা উত্তর সিটি করপোরেশন (ডিএনসিসি) তার এলাকার মধ্যে যথাযথ অনুমতি ছাড়া অবৈধভাবে স্থাপিত ব্যানার, ফেস্টুন, পোস্টার, বিজ্ঞাপনী নামফলক, সাইনবোর্ড, এলইডি বিলবোর্ডসহ অনুরূপ উপকরণগুলো ২০২৫ সালের ২৫ নভেম্বরের মধ্যে অপসারণের নির্দেশ দিয়েছে সংশ্লিষ্ট ব্যক্তি ও প্রতিষ্ঠানগুলোকে।",
+    "image": "https://channeljuly36.com/wp-content/uploads/2025/11/nirbacon-web-330x242.png",
+    "showInSlide": true
+  },
+  {
+    "id": 2,
+    "title": "রাজধানীতে তীব্র যানজট: জনজীবনে ভোগান্তি",
+    "category": "জাতীয়",
+    "date": "November 20, 2025",
+    "snippet": "আজ সকালে রাজধানীর বিভিন্ন সড়কে তীব্র যানজট দেখা গেছে, যার ফলে অফিসগামী মানুষ ও শিক্ষার্থীদের চরম ভোগান্তিতে পড়তে হয়েছে।",
+    "image": "https://cdn.vuetifyjs.com/images/cards/road.jpg",
+    "showInSlide": true
+  },
+  {
+    "id": 3,
+    "title": "Sports News: Local Team Wins Championship!",
+    "category": "Sports",
+    "date": "November 18, 2025",
+    "snippet": "Our local team, the City Strikers, secured a thrilling victory in the national championship last night, sparking celebrations across the city.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/sunshine.jpg",
+    "showInSlide": true
+  },
+  {
+    "id": 4,
+    "title": "New Tech Gadget Promises Revolutionary Changes",
+    "category": "Technology",
+    "date": "November 17, 2025",
+    "snippet": "A groundbreaking new device was unveiled yesterday, promising to transform daily life with its innovative features and unparalleled efficiency.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/docks.jpg",
+    "showInSlide": true
+  },
+  {
+    "id": 5,
+    "title": "International Relations: Peace Talks Begin",
+    "category": "আন্তর্জাতিক",
+    "date": "November 16, 2025",
+    "snippet": "Leaders from several nations have convened for critical peace talks, aiming to resolve long-standing conflicts and foster global stability.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/plane.jpg",
+    "showInSlide": true
+  },
+  {
+    "id": 6,
+    "title": "Culture and Arts: Exhibition Opens to Raves",
+    "category": "বিবিধ",
+    "date": "November 15, 2025",
+    "snippet": "An exquisite art exhibition featuring works by contemporary masters has opened, drawing critical acclaim and large crowds.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/forest.jpg"
+  },
+  {
+    "id": 7,
+    "title": "Health Update: New Research on Disease Prevention",
+    "category": "জাতীয়",
+    "date": "November 14, 2025",
+    "snippet": "Recent scientific breakthroughs are shedding new light on effective strategies for disease prevention, offering hope for healthier communities.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/house.jpg"
+  },
+  {
+    "id": 8,
+    "title": "Education Sector Reforms Announced",
+    "category": "শিক্ষাঙ্গন",
+    "date": "November 13, 2025",
+    "snippet": "Significant reforms in the education system have been unveiled, aiming to enhance learning outcomes and student opportunities nationwide.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/desert.jpg"
+  },
+  {
+    "id": 9,
+    "title": "Business and Economy: Market Trends Analysis",
+    "category": "বাণিজ্য",
+    "date": "November 12, 2025",
+    "snippet": "Economists are analyzing the latest market trends, predicting shifts in consumer behavior and their potential impact on global economy.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/forest.jpg"
+  },
+  {
+    "id": 10,
+    "title": "Lifestyle: New Trends in Sustainable Living",
+    "category": "বিবিধ",
+    "date": "November 11, 2025",
+    "snippet": "A growing movement towards sustainable living is inspiring new trends in eco-friendly products and mindful consumption.",
+    "image": "https://cdn.vuetifyjs.com/images/cards/mountain.jpg"
+  }
+]

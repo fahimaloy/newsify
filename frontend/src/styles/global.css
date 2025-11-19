@@ -1,0 +1,12 @@
+/* frontend/src/styles/global.css */
+
+/* Global override for Vuetify overlay scrim */
+.v-overlay__scrim {
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* Global override for v-main padding to account for fixed NewsTicker */
+.v-main__wrap {
+  padding-top: 102px !important;
+}
