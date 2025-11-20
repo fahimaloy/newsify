@@ -1,4 +1,0 @@
-[submodule "backend"]
-	path = backend
-	url = git@github.com:fahimaloy/newsify_api.git
-	branch = main
