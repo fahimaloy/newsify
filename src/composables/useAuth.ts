@@ -1,9 +1,26 @@
 import { ref, computed } from 'vue';
 
-interface User {
+export enum UserType {
+  SUBSCRIBER = 'subscriber',
+  ADMINISTRATOR = 'administrator',
+}
+
+export enum AdminType {
+  ADMIN = 'admin',
+  WRITER = 'writer',
+  MAINTAINER = 'maintainer',
+}
+
+export interface User {
   id: number;
   username: string;
-  role: string;
+  email?: string;
+  phone?: string;
+  user_type: UserType;
+  admin_type?: AdminType;
+  role?: string; // Deprecated
+  post_review_before_publish?: boolean;
+  newsletter_subscribed?: boolean;
 }
 
 interface LoginCredentials {
@@ -24,6 +41,11 @@ const user = ref<User | null>(null);
 
 // Computed
 const isAuthenticated = computed(() => !!token.value);
+const isAdministrator = computed(() => user.value?.user_type === UserType.ADMINISTRATOR);
+const isSubscriber = computed(() => user.value?.user_type === UserType.SUBSCRIBER);
+const isAdmin = computed(() => user.value?.admin_type === AdminType.ADMIN);
+const isMaintainer = computed(() => user.value?.admin_type === AdminType.MAINTAINER);
+const isWriter = computed(() => user.value?.admin_type === AdminType.WRITER);
 
 // Load user from token on init
 const loadUserFromToken = async () => {
@@ -99,6 +121,11 @@ export function useAuth() {
     user,
     token,
     isAuthenticated,
+    isAdministrator,
+    isSubscriber,
+    isAdmin,
+    isMaintainer,
+    isWriter,
     login,
     logout,
     getAuthHeader,

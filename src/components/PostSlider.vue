@@ -17,12 +17,12 @@
     @update:model-value="emits('update:currentSlideIndex', $event)"
   >
     <template #prev="{ props }">
-      <v-btn icon size="x-large" color="transparent" rounded="0" class="carousel-arrow-btn" v-bind="props">
+      <v-btn size="x-large" color="transparent" rounded="0" class="carousel-arrow-btn" v-bind="props">
         <v-icon color="white">mdi-chevron-left</v-icon>
       </v-btn>
     </template>
     <template #next="{ props }">
-      <v-btn icon size="x-large" color="transparent" rounded="0" class="carousel-arrow-btn" v-bind="props">
+      <v-btn size="x-large" color="transparent" rounded="0" class="carousel-arrow-btn" v-bind="props">
         <v-icon color="white">mdi-chevron-right</v-icon>
       </v-btn>
     </template>
@@ -54,7 +54,7 @@ interface Article {
 
 const props = defineProps<{
   slides: Article[];
-  currentSlideIndex: { type: Number, required: true }, // Add currentSlideIndex to props
+  currentSlideIndex: number;
 }>();
 
 const emits = defineEmits(['update:currentSlideIndex', 'current-slide-title']);

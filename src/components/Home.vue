@@ -1,5 +1,31 @@
 <template>
-  <div>
+  <div
+    @touchstart="handleTouchStart"
+    @touchmove="handleTouchMove"
+    @touchend="handleTouchEnd"
+  >
+    <!-- Pull indicator -->
+    <div 
+      v-if="pullDistance > 0" 
+      class="d-flex align-center justify-center" 
+      :style="{ 
+        height: pullDistance + 'px', 
+        overflow: 'hidden', 
+        transition: isPulling ? 'none' : 'height 0.3s',
+        opacity: Math.min(pullDistance / 100, 1)
+      }"
+    >
+      <v-icon 
+        color="primary" 
+        :style="{ transform: `rotate(${pullDistance * 3.6}deg)` }"
+      >
+        mdi-refresh
+      </v-icon>
+      <span class="text-caption text-grey ml-2">
+        {{ pullDistance > 100 ? 'Release to refresh' : 'Pull to refresh' }}
+      </span>
+    </div>
+
     <!-- Loading state -->
     <v-container v-if="loading" class="text-center py-10">
       <v-progress-circular
@@ -145,8 +171,41 @@ const useFallbackData = () => {
 
 // Fetch posts when component mounts
 onMounted(async () => {
-  await fetchPosts({ limit: 100 });
+  // We rely on App.vue to initialize the store (offline-first)
+  // But if we want to ensure we have data or trigger a refresh on mount if stale:
+  // await fetchPosts(); 
+  // For now, let's just let the store state drive the UI.
 });
+
+// Pull to refresh logic
+const touchStart = ref(0);
+const pullDistance = ref(0);
+const isPulling = ref(false);
+
+const handleTouchStart = (e: TouchEvent) => {
+  if (window.scrollY === 0) {
+    touchStart.value = e.touches[0].clientY;
+    isPulling.value = true;
+  }
+};
+
+const handleTouchMove = (e: TouchEvent) => {
+  if (isPulling.value) {
+    const currentY = e.touches[0].clientY;
+    const diff = currentY - touchStart.value;
+    if (diff > 0 && window.scrollY === 0) {
+      pullDistance.value = Math.min(diff, 150); // Cap at 150px
+    }
+  }
+};
+
+const handleTouchEnd = async () => {
+  if (isPulling.value && pullDistance.value > 100) {
+    await fetchPosts();
+  }
+  isPulling.value = false;
+  pullDistance.value = 0;
+};
 </script>
 
 <style scoped>

@@ -89,6 +89,17 @@
                     Don't have an account? Contact your administrator.
                   </p>
                 </div>
+                <div class="text-center mt-6">
+                  <p class="text-body-2 text-grey-darken-1">
+                    Don't have an account?
+                    <router-link
+                      to="/signup"
+                      class="text-red-darken-3 text-decoration-none font-weight-bold"
+                    >
+                      Sign Up
+                    </router-link>
+                  </p>
+                </div>
               </v-form>
             </v-card>
 
@@ -140,14 +151,23 @@ const handleLogin = async () => {
     password: password.value,
   });
 
-  loading.value = false;
-
   if (result.success) {
-    // Redirect to home or profile
     router.push("/profile");
   } else {
-    error.value = result.error || "Login failed. Please try again.";
+    // Check if error is verification related
+    if (result.error === "Email verification required") {
+      // Redirect to signup page with verification step or show a message
+      // For now, let's show the error and maybe a link/button to verify
+      // But since we don't have a standalone verify page that takes username,
+      // we might need to direct them to signup or handle it here.
+      // The signup page handles verification flow.
+      error.value =
+        "Email verification required. Please sign up again to verify or contact support.";
+    } else {
+      error.value = result.error || "Login failed";
+    }
   }
+  loading.value = false;
 };
 </script>
 
