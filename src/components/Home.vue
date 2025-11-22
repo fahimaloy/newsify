@@ -1,49 +1,152 @@
 <template>
   <div>
-    <PostSlider :slides="sliderArticles" @current-slide-title="updateActiveSliderTitle($event)" v-model:currentSlideIndex="currentSlideIndex" />
-
-    <v-container>
-      <v-row>
-        <v-col cols="12" class="py-1" v-for="article in mainArticles" :key="article.id">
-          <v-card class="custom-card-border mb-2">
-            <v-img :src="article.image" height="200px" cover></v-img>
-
-            <div class="post-details-container">
-              <div class="post-details">
-                <div class="category">{{ article.category }}</div>
-                <div class="date">{{ article.date }}</div>
-              </div>
-            </div>
-
-            <v-card-title class="single-post-title text-wrap font-weight-bold">{{ article.title }}</v-card-title>
-            
-            <v-card-text class="description-text">{{ article.snippet }}</v-card-text>
-
-          </v-card>
-        </v-col>
-      </v-row>
+    <!-- Loading state -->
+    <v-container v-if="loading" class="text-center py-10">
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        size="64"
+      ></v-progress-circular>
+      <p class="mt-4 text-grey">Loading news...</p>
     </v-container>
+
+    <!-- Error state with fallback option -->
+    <v-container v-else-if="error" class="text-center py-10">
+      <v-icon size="100" color="warning" class="mb-4">
+        mdi-alert-circle-outline
+      </v-icon>
+      <h2 class="text-h5 text-grey-darken-2 mb-3">Unable to Load News</h2>
+      <p class="text-body-1 text-grey mb-4">
+        {{ error }}
+      </p>
+      <v-btn
+        color="primary"
+        variant="elevated"
+        prepend-icon="mdi-refresh"
+        @click="retryFetch"
+        class="mb-3"
+      >
+        Retry
+      </v-btn>
+      <br />
+      <v-btn
+        color="secondary"
+        variant="outlined"
+        prepend-icon="mdi-file-document-outline"
+        @click="useFallbackData"
+        size="small"
+      >
+        Load Sample Data
+      </v-btn>
+      <p class="text-caption text-grey-lighten-1 mt-4">
+        Make sure the backend server is running at {{ apiBaseUrl }}
+      </p>
+    </v-container>
+
+    <!-- Empty state -->
+    <v-container
+      v-else-if="sliderArticles.length === 0 && mainArticles.length === 0"
+      class="text-center py-16"
+    >
+      <v-icon size="120" color="grey-lighten-1" class="mb-4">
+        mdi-newspaper-variant-outline
+      </v-icon>
+      <h2 class="text-h4 text-grey-darken-1 mb-2">No News Available</h2>
+      <p class="text-body-1 text-grey">
+        There are currently no published news articles to display.
+      </p>
+      <p class="text-body-2 text-grey-lighten-1 mt-2">
+        Check back later for updates!
+      </p>
+    </v-container>
+
+    <!-- Content -->
+    <div v-else>
+      <PostSlider
+        v-if="sliderArticles.length > 0"
+        :slides="sliderArticles"
+        @current-slide-title="updateActiveSliderTitle($event)"
+        v-model:currentSlideIndex="currentSlideIndex"
+      />
+
+      <v-container>
+        <v-row>
+          <v-col
+            cols="12"
+            class="py-1"
+            v-for="article in mainArticles"
+            :key="article.id"
+          >
+            <v-card class="custom-card-border mb-2">
+              <v-img :src="article.image" height="200px" cover></v-img>
+
+              <div class="post-details-container">
+                <div class="post-details">
+                  <div class="category">{{ article.category }}</div>
+                  <div class="date">{{ article.date }}</div>
+                </div>
+              </div>
+
+              <v-card-title
+                class="single-post-title text-wrap font-weight-bold"
+                >{{ article.title }}</v-card-title
+              >
+
+              <v-card-text class="description-text">{{
+                article.snippet
+              }}</v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
-import articlesData from '../data/articles.json';
-import PostSlider from './PostSlider.vue';
+import { ref, inject, onMounted, computed } from "vue";
+import PostSlider from "./PostSlider.vue";
+import { useNews } from "../composables/useNews";
+import articlesData from "../data/articles.json";
 
-const allArticles = ref(articlesData);
-const currentSlideIndex = ref(0); // For v-model with PostSlider
-
-const sliderArticles = computed(() => {
-  return allArticles.value.filter(article => article.showInSlide);
-});
-
-const mainArticles = computed(() => {
-  return allArticles.value.filter(article => !article.showInSlide);
-});
+const {
+  sliderArticles,
+  mainArticles,
+  fetchPosts,
+  setFallbackData,
+  loading,
+  error,
+} = useNews();
+const currentSlideIndex = ref(0);
+const usingFallback = ref(false);
 
 // Inject the updater function from App.vue
-const updateActiveSliderTitle = inject<(title: string) => void>('updateActiveSliderTitle', () => {});
+const updateActiveSliderTitle = inject<(title: string) => void>(
+  "updateActiveSliderTitle",
+  () => {}
+);
+
+// API base URL for display
+const apiBaseUrl = computed(
+  () => import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
+);
+
+// Retry fetching from API
+const retryFetch = async () => {
+  usingFallback.value = false;
+  await fetchPosts({ limit: 100 });
+};
+
+// Use fallback static data
+const useFallbackData = () => {
+  usingFallback.value = true;
+  setFallbackData(articlesData);
+};
+
+// Fetch posts when component mounts
+onMounted(async () => {
+  await fetchPosts({ limit: 100 });
+});
 </script>
 
 <style scoped>
@@ -64,16 +167,16 @@ const updateActiveSliderTitle = inject<(title: string) => void>('updateActiveSli
   float: left;
   font-size: 12px;
   font-weight: bold;
-  background: #ED1C24;
+  background: #ed1c24;
   padding: 14px 15px 13px 14px;
-  color: #FFF;
+  color: #fff;
 }
 
 .date {
   float: left;
   font-size: 12px;
-  color: #7C7C7C;
-  border: 1px solid #E9E9E9;
+  color: #7c7c7c;
+  border: 1px solid #e9e9e9;
   border-left: none;
   padding: 13px 14px 12px 13px;
   height: 44px; /* Match height of category */
@@ -83,7 +186,7 @@ const updateActiveSliderTitle = inject<(title: string) => void>('updateActiveSli
 
 /* Custom border for v-card */
 .custom-card-border {
-  border: 1px solid #D0D0D0 !important;
+  border: 1px solid #d0d0d0 !important;
   box-shadow: none !important;
 }
 
