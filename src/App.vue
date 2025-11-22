@@ -1,22 +1,31 @@
 <template>
   <v-app>
-    <v-app-bar app color="#C62828" elevation="0">
-      <v-app-bar-nav-icon @click="drawer = !drawer" class="text-white"></v-app-bar-nav-icon>
-      
+    <!-- App Bar - Hidden on login page -->
+    <v-app-bar v-if="!hideNavigation" app color="#C62828" elevation="0">
+      <v-app-bar-nav-icon
+        @click="drawer = !drawer"
+        class="text-white"
+      ></v-app-bar-nav-icon>
+
       <v-spacer></v-spacer>
 
       <div class="d-flex align-center">
-        <img src="/logo.svg" style="height: 40px; margin-right: 12px;" alt="Logo" />
+        <img
+          src="/logo.svg"
+          style="height: 40px; margin-right: 12px"
+          alt="Logo"
+        />
         <span class="text-white text-h6">Channel July 36</span>
       </div>
-      
+
       <v-spacer></v-spacer>
     </v-app-bar>
 
-    <NewsTicker :activeTitle="activeSliderTitle" />
+    <!-- News Ticker - Hidden on login page -->
+    <NewsTicker v-if="!hideNavigation" :activeTitle="activeSliderTitle" />
 
-
-    <v-navigation-drawer app v-model="drawer" temporary>
+    <!-- Navigation Drawer - Hidden on login page -->
+    <v-navigation-drawer v-if="!hideNavigation" app v-model="drawer" temporary>
       <v-list density="compact" nav>
         <!-- Home item -->
         <v-list-item to="/" color="#C62828">
@@ -25,7 +34,10 @@
 
         <!-- Categories and Subcategories -->
         <template v-for="(category, index) in categories" :key="index">
-          <v-list-group v-if="category.children && category.children.length > 0" :value="category.slug">
+          <v-list-group
+            v-if="category.children && category.children.length > 0"
+            :value="category.slug"
+          >
             <template v-slot:activator="{ props }">
               <v-list-item
                 v-bind="props"
@@ -55,19 +67,31 @@
       <router-view></router-view>
     </v-main>
 
-    <v-bottom-navigation app grow>
+    <!-- Bottom Navigation - Hidden on login page, dynamic based on auth -->
+    <v-bottom-navigation v-if="!hideNavigation" app grow>
       <v-btn to="/">
         <v-icon>mdi-home</v-icon>
         <span>Home</span>
       </v-btn>
-      <v-btn to="/categories">
-        <v-icon>mdi-format-list-bulleted</v-icon>
-        <span>Categories</span>
+
+      <!-- Show Create Post button for authenticated users -->
+      <v-btn v-if="isAuthenticated" to="/create-post" color="#C62828">
+        <v-icon size="32">mdi-plus-circle</v-icon>
+        <span>Create</span>
       </v-btn>
-      <v-btn to="/bookmarks">
-        <v-icon>mdi-bookmark</v-icon>
-        <span>Bookmarks</span>
-      </v-btn>
+
+      <!-- Show Categories and Bookmarks for non-authenticated users -->
+      <template v-else>
+        <v-btn to="/categories">
+          <v-icon>mdi-format-list-bulleted</v-icon>
+          <span>Categories</span>
+        </v-btn>
+        <v-btn to="/bookmarks">
+          <v-icon>mdi-bookmark</v-icon>
+          <span>Bookmarks</span>
+        </v-btn>
+      </template>
+
       <v-btn to="/profile">
         <v-icon>mdi-account</v-icon>
         <span>Profile</span>
@@ -81,27 +105,34 @@
         <h2 class="splash-tagline text-white mt-4">তারুণ্যের কথা বলে</h2>
       </div>
     </div>
-
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, provide } from 'vue';
-import categoriesData from './data/categories.json';
-import NewsTicker from './components/NewsTicker.vue'; // Import NewsTicker
+import { ref, onMounted, provide, computed } from "vue";
+import { useRoute } from "vue-router";
+import categoriesData from "./data/categories.json";
+import NewsTicker from "./components/NewsTicker.vue";
+import { useAuth } from "./composables/useAuth";
+
+const route = useRoute();
+const { isAuthenticated } = useAuth();
 
 const drawer = ref(false);
 const isLoading = ref(true);
-const activeSliderTitle = ref(''); // State for NewsTicker
+const activeSliderTitle = ref("");
 
 // Filter out the "home" category as it's handled separately
-const categories = ref(categoriesData.filter(cat => cat.slug !== 'home'));
+const categories = ref(categoriesData.filter((cat) => cat.slug !== "home"));
+
+// Check if navigation should be hidden (e.g., on login page)
+const hideNavigation = computed(() => route.meta.hideNavigation === true);
 
 // Provide a function to update the active slider title
 const updateActiveSliderTitle = (title: string) => {
   activeSliderTitle.value = title;
 };
-provide('updateActiveSliderTitle', updateActiveSliderTitle);
+provide("updateActiveSliderTitle", updateActiveSliderTitle);
 
 onMounted(() => {
   setTimeout(() => {
@@ -117,7 +148,7 @@ onMounted(() => {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: #C62828;
+  background-color: #c62828;
   z-index: 9999;
   display: flex;
   justify-content: center;
@@ -131,7 +162,7 @@ onMounted(() => {
 }
 
 .splash-tagline {
-  font-family: 'Noto Sans Bengali', sans-serif;
+  font-family: "Noto Sans Bengali", sans-serif;
   font-size: 1.5rem; /* Larger font size */
   animation: popUp 0.8s ease-out 0.5s;
   animation-fill-mode: forwards;
@@ -139,8 +170,12 @@ onMounted(() => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes popUp {
@@ -161,4 +196,3 @@ onMounted(() => {
   padding-top: 106px !important;
 }
 </style>
-
