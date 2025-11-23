@@ -36,7 +36,10 @@
                 </v-avatar>
 
                 <div class="flex-grow-1">
-                  <h2 class="text-h4 mb-2">{{ user?.username }}</h2>
+                  <div class="d-flex align-center justify-space-between">
+                    <h2 class="text-h4 mb-2">{{ user?.username }}</h2>
+                    <v-btn icon="mdi-pencil" variant="text" to="/edit-profile" color="grey-darken-1"></v-btn>
+                  </div>
                   <v-chip
                     :color="getRoleColor(user?.role)"
                     size="small"
@@ -54,7 +57,7 @@
                   <div class="detail-item">
                     <v-icon size="20" class="mr-2">mdi-account</v-icon>
                     <span class="text-caption text-grey">Name:</span>
-                    <span class="ml-2">-</span>
+                    <span class="ml-2">{{ user?.full_name || '-' }}</span>
                   </div>
                 </v-col>
                 <v-col cols="12" sm="6">
@@ -68,14 +71,14 @@
                   <div class="detail-item">
                     <v-icon size="20" class="mr-2">mdi-email</v-icon>
                     <span class="text-caption text-grey">Email:</span>
-                    <span class="ml-2">-</span>
+                    <span class="ml-2">{{ user?.email || '-' }}</span>
                   </div>
                 </v-col>
                 <v-col cols="12" sm="6">
                   <div class="detail-item">
                     <v-icon size="20" class="mr-2">mdi-phone</v-icon>
                     <span class="text-caption text-grey">Phone:</span>
-                    <span class="ml-2">-</span>
+                    <span class="ml-2">{{ user?.phone || '-' }}</span>
                   </div>
                 </v-col>
                 <v-col cols="12" sm="6">
@@ -86,6 +89,13 @@
                   </div>
                 </v-col>
               </v-row>
+              
+              <v-divider class="my-4"></v-divider>
+              <div class="d-flex justify-end">
+                <v-btn color="primary" variant="text" @click="resetPasswordDialog = true">
+                  Reset Password
+                </v-btn>
+              </div>
             </v-card-text>
           </v-card>
 
@@ -97,6 +107,13 @@
                 isAdmin || isMaintainer ? "All Posts" : "My Posts"
               }}</span>
               <v-spacer></v-spacer>
+              <v-btn
+                icon="mdi-open-in-new"
+                variant="text"
+                to="/posts"
+                title="Manage All Posts"
+                class="mr-2"
+              ></v-btn>
               <v-btn
                 color="#C62828"
                 variant="outlined"
@@ -171,12 +188,14 @@
                     size="small"
                     variant="text"
                     color="primary"
+                    :to="`/edit-post/${item.id}`"
                   ></v-btn>
                   <v-btn
                     icon="mdi-delete"
                     size="small"
                     variant="text"
                     color="error"
+                    @click="confirmDelete(item)"
                   ></v-btn>
                 </template>
               </template>
@@ -267,6 +286,41 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Reset Password Dialog -->
+    <v-dialog v-model="resetPasswordDialog" max-width="500">
+      <v-card>
+        <v-card-title>Reset Password</v-card-title>
+        <v-card-text>
+          <v-window v-model="resetStep">
+            <v-window-item :value="1">
+              <p class="mb-4">Click "Send OTP" to receive a verification code at your email.</p>
+              <v-btn block color="primary" @click="sendOtp" :loading="otpLoading">Send OTP</v-btn>
+            </v-window-item>
+            <v-window-item :value="2">
+              <v-text-field v-model="otpCode" label="OTP Code" class="mb-4"></v-text-field>
+              <v-text-field v-model="newPassword" label="New Password" type="password" class="mb-4"></v-text-field>
+              <v-btn block color="primary" @click="confirmReset" :loading="resetLoading">Reset Password</v-btn>
+            </v-window-item>
+          </v-window>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="deleteDialog" max-width="400">
+      <v-card>
+        <v-card-title class="text-h5 pa-4">Delete Post?</v-card-title>
+        <v-card-text class="pa-4">
+          Are you sure you want to delete this post? This action cannot be undone.
+        </v-card-text>
+        <v-card-actions class="pa-4">
+          <v-spacer></v-spacer>
+          <v-btn variant="text" @click="deleteDialog = false">Cancel</v-btn>
+          <v-btn color="error" :loading="deleteLoading" @click="deletePost">Delete</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -292,6 +346,102 @@ const posts = ref<any[]>([]);
 const page = ref(1);
 const itemsPerPage = ref(10);
 const filterDialog = ref(false);
+
+// Reset Password State
+const resetPasswordDialog = ref(false);
+const resetStep = ref(1);
+const otpLoading = ref(false);
+const resetLoading = ref(false);
+const otpCode = ref('');
+const newPassword = ref('');
+
+// Delete State
+const deleteDialog = ref(false);
+const postToDelete = ref<any>(null);
+const deleteLoading = ref(false);
+
+const confirmDelete = (post: any) => {
+  postToDelete.value = post;
+  deleteDialog.value = true;
+};
+
+const deletePost = async () => {
+  if (!postToDelete.value) return;
+  
+  deleteLoading.value = true;
+  try {
+    const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || "http://localhost:8000";
+    const response = await fetch(`${API_BASE_URL}/api/v1/posts/${postToDelete.value.id}`, {
+      method: 'DELETE',
+      headers: getAuthHeader() as HeadersInit,
+    });
+    
+    if (response.ok) {
+      posts.value = posts.value.filter(p => p.id !== postToDelete.value.id);
+      deleteDialog.value = false;
+    } else {
+      alert("Failed to delete post");
+    }
+  } catch (err) {
+    console.error("Delete error:", err);
+    alert("Error deleting post");
+  } finally {
+    deleteLoading.value = false;
+    postToDelete.value = null;
+  }
+};
+
+const sendOtp = async () => {
+  otpLoading.value = true;
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/reset-password-request`, {
+      method: 'POST',
+      headers: getAuthHeader() as HeadersInit
+    });
+    if (response.ok) {
+      resetStep.value = 2;
+    } else {
+      alert('Failed to send OTP');
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    otpLoading.value = false;
+  }
+};
+
+const confirmReset = async () => {
+  resetLoading.value = true;
+  try {
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/reset-password-confirm`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeader(),
+        'Content-Type': 'application/json'
+      } as HeadersInit,
+      body: JSON.stringify({
+        code: otpCode.value,
+        new_password: newPassword.value
+      })
+    });
+    if (response.ok) {
+      alert('Password updated successfully');
+      resetPasswordDialog.value = false;
+      resetStep.value = 1;
+      otpCode.value = '';
+      newPassword.value = '';
+    } else {
+      const error = await response.json();
+      alert(error.detail || 'Failed to reset password');
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    resetLoading.value = false;
+  }
+};
 
 const filters = ref({
   startDate: "",
@@ -326,7 +476,7 @@ const getUserInitials = (username?: string) => {
   return username.substring(0, 2).toUpperCase();
 };
 
-const getRoleColor = (role?: string) => {
+const getRoleColor = (_role?: string) => {
   // Map new admin types to colors
   if (user.value?.admin_type === "admin") return "error";
   if (user.value?.admin_type === "maintainer") return "warning";
@@ -334,7 +484,7 @@ const getRoleColor = (role?: string) => {
   return "grey";
 };
 
-const getRoleLabel = (role?: string) => {
+const getRoleLabel = (_role?: string) => {
   if (user.value?.user_type === "subscriber") return "Subscriber";
   if (user.value?.admin_type === "admin") return "Administrator";
   if (user.value?.admin_type === "maintainer") return "Maintainer";
@@ -374,7 +524,7 @@ const fetchMyPosts = async () => {
     const API_BASE_URL =
       import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
     const response = await fetch(`${API_BASE_URL}/api/v1/posts/`, {
-      headers: getAuthHeader(),
+      headers: getAuthHeader() as HeadersInit,
     });
 
     if (response.ok) {
@@ -413,7 +563,7 @@ const updateStatus = async (postId: number, newStatus: string) => {
         headers: {
           ...getAuthHeader(),
           "Content-Type": "application/json",
-        },
+        } as HeadersInit,
         body: JSON.stringify(newStatus), // Body should be just the string based on my backend? No, Body(...) expects JSON.
         // Wait, my backend: new_status: PostStatus = Body(...)
         // So it expects just the string value in the body? Or a JSON object?

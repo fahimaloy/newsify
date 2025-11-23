@@ -16,11 +16,13 @@ export interface User {
   username: string;
   email?: string;
   phone?: string;
+  full_name?: string;
   user_type: UserType;
   admin_type?: AdminType;
   role?: string; // Deprecated
   post_review_before_publish?: boolean;
   newsletter_subscribed?: boolean;
+  is_blocked?: boolean;
 }
 
 interface LoginCredentials {

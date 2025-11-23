@@ -27,7 +27,7 @@
       </v-btn>
     </template>
 
-    <v-carousel-item v-for="(slide, i) in slides" :key="i">
+    <v-carousel-item v-for="(slide, i) in slides" :key="i" :to="`/post/${slide.id}`">
       <v-img :src="slide.image" height="100%" cover>
         <div class="d-flex fill-height justify-center align-end text-white pa-4 slide-overlay">
           <div>

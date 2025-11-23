@@ -25,12 +25,31 @@ export function useNews() {
             // Sync if online
             if (navigator.onLine) {
                 await sync();
+                await refreshRecent();
             }
         } catch (err: any) {
             console.error('Init error:', err);
             error.value = err instanceof Error ? err.message : 'Failed to initialize news';
         } finally {
             loading.value = false;
+        }
+    };
+
+    const refreshRecent = async () => {
+        if (!navigator.onLine) return;
+        try {
+            const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+            // Fetch latest 20 posts to catch updates (edits, status changes)
+            const response = await fetch(`${API_BASE_URL}/api/v1/posts/?limit=20`);
+            if (response.ok) {
+                const freshPosts = await response.json();
+                if (freshPosts.length > 0) {
+                    await savePosts(freshPosts);
+                    posts.value = await getPosts();
+                }
+            }
+        } catch (e) {
+            console.error('Refresh recent error:', e);
         }
     };
 
@@ -76,6 +95,7 @@ export function useNews() {
             // If specific params are passed (like category), we might need to filter local
             // or fetch if not found. For now, we rely on sync to get latest.
             await sync();
+            await refreshRecent();
             
             // If category_id is present, we might want to filter the global posts
             // But 'posts' ref is global. 
@@ -138,18 +158,49 @@ export function useNews() {
         }));
     };
 
-    // Get posts for slider (first 6 published posts)
-    const sliderPosts = computed(() => {
-        return posts.value.slice(0, 6);
+    // Filter published posts
+    const publishedPosts = computed(() => {
+        return posts.value.filter(p => p.status === 'published');
     });
 
-    // Get main posts (remaining published posts)
+    // Get posts for slider (first 10 published posts)
+    const sliderPosts = computed(() => {
+        return publishedPosts.value.slice(0, 10);
+    });
+
+    // Get main posts (all published posts)
     const mainPosts = computed(() => {
-        return posts.value.slice(6);
+        return publishedPosts.value;
     });
 
     // Transform Post to article format for compatibility with existing components
     const transformPostToArticle = (post: Post) => {
+        // Strip HTML tags and get plain text
+        const stripHtml = (html: string) => {
+            if (!html) return '';
+            const tmp = document.createElement('div');
+            tmp.innerHTML = html;
+            return tmp.textContent || tmp.innerText || '';
+        };
+        
+        // Get first 4-5 sentences
+        const getSnippet = (text: string) => {
+            const plainText = stripHtml(text).trim();
+            if (!plainText) return '';
+            
+            // Split by sentence endings (., !, ?) - improved regex
+            const sentences = plainText.match(/[^.!?]+[.!?]+[\s]*/g);
+            
+            if (sentences && sentences.length > 0) {
+                // Take first 4-5 sentences
+                const snippetSentences = sentences.slice(0, 5);
+                return snippetSentences.join('').trim();
+            }
+            
+            // Fallback: if no sentences detected, take first 200 characters
+            return plainText.substring(0, 200) + (plainText.length > 200 ? '...' : '');
+        };
+        
         return {
             id: post.id,
             title: post.title,
@@ -159,7 +210,7 @@ export function useNews() {
                 month: 'long',
                 day: 'numeric'
             }),
-            snippet: post.description,
+            snippet: getSnippet(post.description),
             image: newsAPI.getImageURL(post.image),
             showInSlide: false // Will be set based on position
         };

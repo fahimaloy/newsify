@@ -20,13 +20,9 @@ const props = defineProps<{
 
 <style scoped>
 .news-ticker {
-  position: fixed;
-  top: 56px; /* Height of the app bar */
-  left: 0;
-  right: 0;
-  z-index: 1000; /* Ensure it stays on top */
+  width: 100%;
   min-height: 40px;
-  padding-top: 8px; /* Very little padding top */
+  padding-top: 8px;
   border-top: 1px solid #B71C1C; /* Darker red */
   border-bottom: 1px solid #A00003; /* Even darker red */
 }

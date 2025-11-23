@@ -103,24 +103,34 @@
             v-for="article in mainArticles"
             :key="article.id"
           >
-            <v-card class="custom-card-border mb-2">
-              <v-img :src="article.image" height="200px" cover></v-img>
+            <v-card class="custom-card-border mb-2 position-relative">
+              <v-btn
+                :icon="isBookmarked(article.id).value ? 'mdi-bookmark' : 'mdi-bookmark-outline'"
+                :color="isBookmarked(article.id).value ? 'primary' : 'white'"
+                class="bookmark-btn"
+                size="small"
+                @click.prevent="toggleBookmark(article.id)"
+              ></v-btn>
+              
+              <router-link :to="`/post/${article.id}`" class="card-link">
+                <v-img :src="article.image" height="200px" cover></v-img>
 
-              <div class="post-details-container">
-                <div class="post-details">
-                  <div class="category">{{ article.category }}</div>
-                  <div class="date">{{ article.date }}</div>
+                <div class="post-details-container">
+                  <div class="post-details">
+                    <div class="category">{{ article.category }}</div>
+                    <div class="date">{{ article.date }}</div>
+                  </div>
                 </div>
-              </div>
 
-              <v-card-title
-                class="single-post-title text-wrap font-weight-bold"
-                >{{ article.title }}</v-card-title
-              >
+                <v-card-title
+                  class="single-post-title text-wrap font-weight-bold"
+                  >{{ article.title }}</v-card-title
+                >
 
-              <v-card-text class="description-text">{{
-                article.snippet
-              }}</v-card-text>
+                <v-card-text class="description-text">{{
+                  article.snippet
+                }}</v-card-text>
+              </router-link>
             </v-card>
           </v-col>
         </v-row>
@@ -133,6 +143,7 @@
 import { ref, inject, onMounted, computed } from "vue";
 import PostSlider from "./PostSlider.vue";
 import { useNews } from "../composables/useNews";
+import { useBookmarks } from "../composables/useBookmarks";
 import articlesData from "../data/articles.json";
 
 const {
@@ -143,6 +154,9 @@ const {
   loading,
   error,
 } = useNews();
+
+const { init: initBookmarks, isBookmarked, toggleBookmark } = useBookmarks();
+
 const currentSlideIndex = ref(0);
 const usingFallback = ref(false);
 
@@ -171,6 +185,7 @@ const useFallbackData = () => {
 
 // Fetch posts when component mounts
 onMounted(async () => {
+  initBookmarks();
   // We rely on App.vue to initialize the store (offline-first)
   // But if we want to ensure we have data or trigger a refresh on mount if stale:
   // await fetchPosts(); 
@@ -254,5 +269,26 @@ const handleTouchEnd = async () => {
   /* This color is a medium-dark gray, making it look lighter/grayer than the default black text */
   color: #616161 !important;
   /* You can make it slightly smaller/lighter if needed, but color change is enough for requested look */
+}
+
+.bookmark-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.bookmark-btn:hover {
+  transform: scale(1.1);
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
 }
 </style>

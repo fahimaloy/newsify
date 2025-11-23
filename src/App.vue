@@ -19,10 +19,11 @@
       </div>
 
       <v-spacer></v-spacer>
+      
+      <template v-slot:extension>
+        <NewsTicker :activeTitle="activeSliderTitle" />
+      </template>
     </v-app-bar>
-
-    <!-- News Ticker - Hidden on login page -->
-    <NewsTicker v-if="!hideNavigation" :activeTitle="activeSliderTitle" />
 
     <!-- Navigation Drawer - Hidden on login page -->
     <v-navigation-drawer v-if="!hideNavigation" app v-model="drawer" temporary>
@@ -77,9 +78,9 @@
           <span class="nav-label">Home</span>
         </router-link>
 
-        <!-- Categories button only for administrators -->
+        <!-- Categories button for administrators (except writers) -->
         <router-link 
-          v-if="isAdministrator" 
+          v-if="isAdministrator && !isWriter" 
           to="/categories" 
           class="nav-item" 
           :class="{ active: route.path === '/categories' }"
@@ -116,6 +117,19 @@
           <span class="nav-label">Create</span>
         </router-link>
 
+        <!-- Users button for administrators (except writers) -->
+        <router-link 
+          v-if="isAdministrator && !isWriter" 
+          to="/users" 
+          class="nav-item" 
+          :class="{ active: route.path === '/users' }"
+        >
+          <div class="nav-icon-wrapper">
+            <v-icon>mdi-account-group</v-icon>
+          </div>
+          <span class="nav-label">Users</span>
+        </router-link>
+
         <router-link to="/profile" class="nav-item" :class="{ active: route.path === '/profile' }">
           <div class="nav-icon-wrapper">
             <v-avatar v-if="isAuthenticated && user" size="24" color="#C62828">
@@ -150,7 +164,7 @@ import { useAuth } from "./composables/useAuth";
 import { useNews } from "./composables/useNews";
 
 const route = useRoute();
-const { isAuthenticated, user, isAdministrator } = useAuth();
+const { isAuthenticated, user, isAdministrator, isWriter } = useAuth();
 const { init: initNews } = useNews();
 
 const drawer = ref(false);
@@ -188,6 +202,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ... (styles omitted for brevity) ... */
 .splash-overlay {
   position: fixed;
   top: 0;
@@ -309,9 +324,7 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
 }
 
-.nav-item-featured {
-  transform: translateY(-8px);
-}
+
 
 .nav-item-featured .nav-icon-wrapper {
   color: white;
@@ -369,8 +382,20 @@ onMounted(() => {
 </style>
 
 <style>
-/* Global override for v-main padding to account for fixed NewsTicker */
-.v-main__wrap {
-  padding-top: 106px !important;
+/* Global padding to prevent content from being hidden behind bottom navbar */
+.v-main {
+  padding-bottom: 120px !important; /* Increased to ensure visibility */
+}
+
+/* Glassmorphism effect for all dialog overlays */
+.v-overlay__scrim {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Enhanced dialog appearance */
+.v-dialog .v-card {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
 }
 </style>
