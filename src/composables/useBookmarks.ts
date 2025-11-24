@@ -80,7 +80,7 @@ export function useBookmarks() {
                     headers: {
                         'Content-Type': 'application/json',
                         ...getAuthHeader()
-                    },
+                    } as HeadersInit,
                     body: JSON.stringify({ post_id: postId })
                 });
             } catch (e) {
@@ -109,11 +109,18 @@ export function useBookmarks() {
 
     // Toggle bookmark
     const toggleBookmark = async (postId: number) => {
+        console.log('[useBookmarks] Toggling bookmark for post:', postId);
+        console.log('[useBookmarks] Current bookmarks:', Array.from(bookmarkedPosts.value));
+        
         if (bookmarkedPosts.value.has(postId)) {
+            console.log('[useBookmarks] Removing bookmark');
             await removeBookmark(postId);
         } else {
+            console.log('[useBookmarks] Adding bookmark');
             await addBookmark(postId);
         }
+        
+        console.log('[useBookmarks] After toggle, bookmarks:', Array.from(bookmarkedPosts.value));
     };
 
     // Sync local bookmarks to server (call after login)
@@ -129,7 +136,7 @@ export function useBookmarks() {
                 headers: {
                     'Content-Type': 'application/json',
                     ...getAuthHeader()
-                },
+                } as HeadersInit,
                 body: JSON.stringify(localIds)
             });
 

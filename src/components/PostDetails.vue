@@ -53,7 +53,7 @@
             color="primary"
             size="small"
             variant="flat"
-            :to="`/category/${post.category.id}`"
+            :to="`/category/${getCategorySlugByName(post.category.bn_name || post.category.name)}`"
           >
             {{ post.category.bn_name || post.category.name }}
           </v-chip>
@@ -78,10 +78,36 @@
         </div>
       </div>
 
-      <v-divider class="mb-6"></v-divider>
+      <div class="d-flex justify-space-between align-center mb-6">
+        <v-divider class="flex-grow-1"></v-divider>
+        <div class="d-flex align-center px-4">
+          <v-btn
+            icon="mdi-format-font-size-decrease"
+            variant="text"
+            size="small"
+            color="grey-darken-1"
+            @click="decreaseFontSize"
+            :disabled="fontSize <= 14"
+          ></v-btn>
+          <span class="text-caption mx-2 text-grey">Aa</span>
+          <v-btn
+            icon="mdi-format-font-size-increase"
+            variant="text"
+            size="small"
+            color="grey-darken-1"
+            @click="increaseFontSize"
+            :disabled="fontSize >= 24"
+          ></v-btn>
+        </div>
+        <v-divider class="flex-grow-1"></v-divider>
+      </div>
 
       <!-- Content -->
-      <div class="post-body text-body-1 text-grey-darken-3" v-html="post.description"></div>
+      <div 
+        class="post-body text-grey-darken-3" 
+        :style="{ fontSize: fontSize + 'px', lineHeight: (fontSize * 1.6) + 'px' }"
+        v-html="sanitizeHtml(post.description)"
+      ></div>
       
       <!-- Share/Actions -->
       <div class="d-flex justify-space-between align-center mt-8 mb-8">
@@ -251,6 +277,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { newsAPI, type Post } from '../services/api';
 import { useAuth } from '../composables/useAuth';
 import { useBookmarks } from '../composables/useBookmarks';
+import { getCategorySlugByName } from '../utils/categoryHelpers';
+import { sanitizeHtml } from '../utils/sanitizer';
 
 const route = useRoute();
 const router = useRouter();
@@ -265,6 +293,15 @@ const loading = ref(true);
 const error = ref<string | null>(null);
 const commentsLoading = ref(false);
 const submitLoading = ref(false);
+const fontSize = ref(18); // Default font size
+
+const increaseFontSize = () => {
+  if (fontSize.value < 24) fontSize.value += 2;
+};
+
+const decreaseFontSize = () => {
+  if (fontSize.value > 14) fontSize.value -= 2;
+};
 
 const isPostBookmarked = computed(() => {
   if (!post.value) return false;
@@ -380,7 +417,7 @@ const submitComment = async () => {
       headers: {
         'Content-Type': 'application/json',
         ...getAuthHeader()
-      },
+      } as HeadersInit,
       body: JSON.stringify({ content: newComment.value })
     });
     

@@ -449,7 +449,7 @@ const filters = ref({
   status: null as string | null,
 });
 
-const statusOptions = ["draft", "pending", "published", "rejected"];
+const statusOptions = ["draft", "pending", "published", "rejected", "scheduled"];
 
 const headers = [
   { title: "Title", key: "title", sortable: true },
@@ -502,6 +502,8 @@ const getStatusColor = (status: string) => {
       return "grey";
     case "rejected":
       return "error";
+    case "scheduled":
+      return "info";
     default:
       return "grey";
   }

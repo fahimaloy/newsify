@@ -27,6 +27,7 @@ export interface Post {
     author: User;
     category?: Category;
     topics: Category[];
+    video_url?: string;
 }
 
 export interface PostsQueryParams {

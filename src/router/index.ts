@@ -24,6 +24,7 @@ const routes = [
   { path: '/posts', component: () => import('../components/PostsList.vue') },
   { path: '/edit-post/:id', component: CreatePost },
   { path: '/edit-profile', component: () => import('../components/EditProfile.vue') },
+  { path: '/category/:slug', component: () => import('../components/CategoryPage.vue') },
 ]
 
 const router = createRouter({

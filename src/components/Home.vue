@@ -88,12 +88,38 @@
 
     <!-- Content -->
     <div v-else>
-      <PostSlider
+      <!-- Slider (Only on home page) -->
+      <v-carousel
         v-if="sliderArticles.length > 0"
-        :slides="sliderArticles"
-        @current-slide-title="updateActiveSliderTitle($event)"
-        v-model:currentSlideIndex="currentSlideIndex"
-      />
+        v-model="currentSlideIndex"
+        @update:model-value="updateTickerIndex"
+        :show-arrows="true"
+        cycle
+        :interval="5000"
+        height="300"
+        hide-delimiters
+      >
+        <template #prev="{ props }">
+          <v-btn size="x-large" color="transparent" rounded="0" class="carousel-arrow-btn" v-bind="props">
+            <v-icon color="white">mdi-chevron-left</v-icon>
+          </v-btn>
+        </template>
+        <template #next="{ props }">
+          <v-btn size="x-large" color="transparent" rounded="0" class="carousel-arrow-btn" v-bind="props">
+            <v-icon color="white">mdi-chevron-right</v-icon>
+          </v-btn>
+        </template>
+
+        <v-carousel-item v-for="(slide, i) in sliderArticles" :key="i" :to="`/post/${slide.id}`">
+          <v-img :src="slide.image" height="100%" cover>
+            <div class="d-flex fill-height justify-center align-end text-white pa-4 slide-overlay">
+              <div>
+                <div class="text-caption text-shadow">{{ slide.category }} - {{ slide.date }}</div>
+              </div>
+            </div>
+          </v-img>
+        </v-carousel-item>
+      </v-carousel>
 
       <v-container>
         <v-row>
@@ -104,21 +130,28 @@
             :key="article.id"
           >
             <v-card class="custom-card-border mb-2 position-relative">
-              <v-btn
-                :icon="isBookmarked(article.id).value ? 'mdi-bookmark' : 'mdi-bookmark-outline'"
-                :color="isBookmarked(article.id).value ? 'primary' : 'white'"
-                class="bookmark-btn"
-                size="small"
-                @click.prevent="toggleBookmark(article.id)"
-              ></v-btn>
-              
               <router-link :to="`/post/${article.id}`" class="card-link">
                 <v-img :src="article.image" height="200px" cover></v-img>
 
                 <div class="post-details-container">
                   <div class="post-details">
-                    <div class="category">{{ article.category }}</div>
-                    <div class="date">{{ article.date }}</div>
+                    <div 
+                      class="category"
+                      @click.prevent="$router.push(`/category/${getCategorySlugByName(article.category)}`)"
+                    >
+                      {{ article.category }}
+                    </div>
+                    <div class="date">
+                      <span>{{ article.date }}</span>
+                      <v-btn
+                        :icon="isBookmarked(article.id).value ? 'mdi-bookmark' : 'mdi-bookmark-outline'"
+                        :color="isBookmarked(article.id).value ? 'primary' : 'grey'"
+                        variant="text"
+                        density="compact"
+                        class="ml-2"
+                        @click.prevent="handleBookmarkToggle(article.id)"
+                      ></v-btn>
+                    </div>
                   </div>
                 </div>
 
@@ -140,11 +173,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, inject, onMounted, computed } from "vue";
-import PostSlider from "./PostSlider.vue";
+import { ref, onMounted } from "vue";
 import { useNews } from "../composables/useNews";
 import { useBookmarks } from "../composables/useBookmarks";
 import articlesData from "../data/articles.json";
+import { getCategorySlugByName } from "../utils/categoryHelpers";
 
 const {
   sliderArticles,
@@ -154,22 +187,26 @@ const {
   loading,
   error,
 } = useNews();
-
 const { init: initBookmarks, isBookmarked, toggleBookmark } = useBookmarks();
 
-const currentSlideIndex = ref(0);
 const usingFallback = ref(false);
+const currentSlideIndex = ref(0);
 
-// Inject the updater function from App.vue
-const updateActiveSliderTitle = inject<(title: string) => void>(
-  "updateActiveSliderTitle",
-  () => {}
-);
+// Function to update ticker when slider changes
+const updateTickerIndex = (newIndex: number) => {
+  // Emit event to parent (App.vue) to sync ticker
+  window.dispatchEvent(new CustomEvent('slider-change', { detail: newIndex }));
+};
+
+// Handle bookmark toggle with feedback
+const handleBookmarkToggle = async (postId: number) => {
+  console.log('Toggling bookmark for post:', postId);
+  await toggleBookmark(postId);
+  console.log('Bookmark toggled, current state:', isBookmarked(postId).value);
+};
 
 // API base URL for display
-const apiBaseUrl = computed(
-  () => import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"
-);
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 // Retry fetching from API
 const retryFetch = async () => {
@@ -185,7 +222,8 @@ const useFallbackData = () => {
 
 // Fetch posts when component mounts
 onMounted(async () => {
-  initBookmarks();
+  await initBookmarks();
+  console.log('Bookmarks initialized');
   // We rely on App.vue to initialize the store (offline-first)
   // But if we want to ensure we have data or trigger a refresh on mount if stale:
   // await fetchPosts(); 
@@ -290,5 +328,20 @@ const handleTouchEnd = async () => {
   text-decoration: none;
   color: inherit;
   display: block;
+}
+
+/* Slider Styles */
+.slide-overlay {
+  background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 50%);
+}
+
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.carousel-arrow-btn {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 4px !important;
 }
 </style>

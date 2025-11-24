@@ -46,7 +46,7 @@
                 <v-col cols="12" md="6">
                   <v-select
                     v-model="form.category_id"
-                    :items="categories"
+                    :items="parentCategories"
                     item-title="name"
                     item-value="id"
                     label="Category"
@@ -62,7 +62,6 @@
                       <v-list-item
                         v-bind="props"
                         :title="item.raw.bn_name || item.raw.name"
-                        :class="{ 'pl-8': item.raw.parent_id }"
                       ></v-list-item>
                     </template>
                     <template v-slot:selection="{ item }">
@@ -72,20 +71,25 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
+                  <!-- Status Selection -->
                   <v-select
                     v-model="form.status"
                     :items="statusOptions"
-                    label="Post Status"
+                    item-title="title"
+                    item-value="value"
+                    label="Status"
                     variant="outlined"
                     color="primary"
                     density="comfortable"
-                    prepend-inner-icon="mdi-file-document-edit"
+                    prepend-inner-icon="mdi-list-status"
+                    class="mb-4"
                   >
                     <template v-slot:item="{ props, item }">
                       <v-list-item v-bind="props">
                         <template v-slot:prepend>
                           <v-icon :color="getStatusColor(item.value)">{{ getStatusIcon(item.value) }}</v-icon>
                         </template>
+                        <v-list-item-title>{{ item.title }}</v-list-item-title>
                       </v-list-item>
                     </template>
                     <template v-slot:selection="{ item }">
@@ -95,15 +99,29 @@
                       </div>
                     </template>
                   </v-select>
+
+                  <!-- Scheduling -->
+                  <v-text-field
+                    v-model="form.scheduled_at"
+                    label="Schedule Publication (Optional)"
+                    type="datetime-local"
+                    variant="outlined"
+                    color="primary"
+                    density="comfortable"
+                    prepend-inner-icon="mdi-calendar-clock"
+                    hint="Leave empty to publish immediately (if status is Published)"
+                    persistent-hint
+                  ></v-text-field>
                 </v-col>
 
                 <!-- Topics -->
                 <v-col cols="12">
                   <v-select
                     v-model="form.topic_ids"
-                    :items="categories"
+                    :items="topicOptions"
                     item-title="name"
                     item-value="id"
+                    item-props="props"
                     label="Topics (Optional)"
                     variant="outlined"
                     color="primary"
@@ -129,7 +147,7 @@
                       <v-list-item
                         v-bind="props"
                         :title="item.raw.bn_name || item.raw.name"
-                        :class="{ 'pl-8': item.raw.parent_id }"
+                        :disabled="!item.raw.parent_id"
                       ></v-list-item>
                     </template>
                   </v-select>
@@ -321,10 +339,23 @@ const mediaInputMethod = ref("upload");
 
 const categories = ref<Category[]>([]);
 
+const parentCategories = computed(() => categories.value.filter(c => !c.parent_id));
+
+const topicOptions = computed(() => {
+  return categories.value.map(c => ({
+    ...c,
+    props: {
+      disabled: !c.parent_id,
+      class: c.parent_id ? 'pl-8' : 'font-weight-bold text-grey-darken-2 bg-grey-lighten-4'
+    }
+  }));
+});
+
 const statusOptions = [
   { title: 'Draft', value: 'draft' },
   { title: 'Pending Review', value: 'pending' },
   { title: 'Published', value: 'published' },
+  { title: 'Scheduled', value: 'scheduled' },
 ];
 
 const form = ref({
@@ -335,6 +366,7 @@ const form = ref({
   imageFile: null as File[] | null,
   imageUrl: "",
   videoUrl: "",
+  scheduled_at: "",
   status: "draft",
 });
 
@@ -392,6 +424,7 @@ const getStatusColor = (status: string) => {
     case 'draft': return 'grey';
     case 'pending': return 'warning';
     case 'published': return 'success';
+    case 'scheduled': return 'info';
     default: return 'grey';
   }
 };
@@ -401,6 +434,7 @@ const getStatusIcon = (status: string) => {
     case 'draft': return 'mdi-file-document-outline';
     case 'pending': return 'mdi-clock-outline';
     case 'published': return 'mdi-check-circle';
+    case 'scheduled': return 'mdi-calendar-clock';
     default: return 'mdi-file';
   }
 };
@@ -479,6 +513,13 @@ const handleSubmit = async () => {
       formData.append("topic_ids", id.toString());
     });
     
+    if (form.value.scheduled_at) {
+        // Ensure ISO format or whatever backend expects. 
+        // datetime-local input gives 'YYYY-MM-DDTHH:mm'. 
+        // Backend expects datetime object, FastAPI handles ISO strings well.
+        formData.append('scheduled_at', new Date(form.value.scheduled_at).toISOString());
+    }
+    
     if (form.value.videoUrl) {
       formData.append("video_url", form.value.videoUrl);
     }
@@ -545,6 +586,7 @@ const resetForm = () => {
     imageFile: null,
     imageUrl: "",
     videoUrl: "",
+    scheduled_at: "",
     status: "draft",
   };
   formRef.value?.reset();

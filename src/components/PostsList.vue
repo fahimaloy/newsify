@@ -137,7 +137,7 @@
         <v-card-text>
           <v-select
             v-model="statusFilter"
-            :items="['draft', 'pending', 'published', 'rejected']"
+            :items="['draft', 'pending', 'published', 'rejected', 'scheduled']"
             label="Status"
             variant="outlined"
             clearable
@@ -287,6 +287,7 @@ const getStatusColor = (status: string) => {
     case 'pending': return 'warning';
     case 'draft': return 'grey';
     case 'rejected': return 'error';
+    case 'scheduled': return 'info';
     default: return 'grey';
   }
 };

@@ -21,7 +21,16 @@
       <v-spacer></v-spacer>
       
       <template v-slot:extension>
-        <NewsTicker :activeTitle="activeSliderTitle" />
+        <!-- News Ticker (Always visible) -->
+        <v-card class="news-ticker" flat tile color="#f0f0f0">
+          <v-card-text class="d-flex align-center justify-center py-1 px-4 news-ticker-text">
+            <transition name="slide" mode="out-in">
+              <span :key="currentTickerTitle" class="news-title text-no-wrap overflow-hidden text-truncate">
+                {{ currentTickerTitle }}
+              </span>
+            </transition>
+          </v-card-text>
+        </v-card>
       </template>
     </v-app-bar>
 
@@ -43,6 +52,7 @@
               <v-list-item
                 v-bind="props"
                 :title="category.name"
+                :to="`/category/${category.slug}`"
                 color="#C62828"
               ></v-list-item>
             </template>
@@ -71,11 +81,11 @@
     <!-- Modern Bottom Navigation - Hidden on login page -->
     <div v-if="!hideNavigation" class="modern-bottom-nav">
       <div class="nav-container">
-        <router-link to="/" class="nav-item" :class="{ active: route.path === '/' }">
+        <router-link to="/" class="nav-item" :class="{ active: isNewsActive }">
           <div class="nav-icon-wrapper">
-            <v-icon>mdi-home-variant</v-icon>
+            <v-icon>mdi-newspaper</v-icon>
           </div>
-          <span class="nav-label">Home</span>
+          <span class="nav-label">News</span>
         </router-link>
 
         <!-- Categories button for administrators (except writers) -->
@@ -130,6 +140,20 @@
           <span class="nav-label">Users</span>
         </router-link>
 
+        <!-- Search button for subscribers (non-admins) -->
+        <div
+          v-if="!isAdministrator"
+          class="nav-item"
+          :class="{ active: showSearch }"
+          @click="showSearch = true"
+          style="cursor: pointer"
+        >
+          <div class="nav-icon-wrapper">
+            <v-icon>mdi-magnify</v-icon>
+          </div>
+          <span class="nav-label">Search</span>
+        </div>
+
         <router-link to="/profile" class="nav-item" :class="{ active: route.path === '/profile' }">
           <div class="nav-icon-wrapper">
             <v-avatar v-if="isAuthenticated && user" size="24" color="#C62828">
@@ -144,6 +168,9 @@
       </div>
     </div>
 
+    <!-- Search Overlay -->
+    <SearchOverlay v-model="showSearch" />
+
     <!-- Splash Screen -->
     <div v-if="isLoading" class="splash-overlay">
       <div class="text-center">
@@ -155,27 +182,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, provide, computed } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import categoriesData from "./data/categories.json";
-import NewsTicker from "./components/NewsTicker.vue";
+import SearchOverlay from "./components/SearchOverlay.vue";
 import { useAuth } from "./composables/useAuth";
-
 import { useNews } from "./composables/useNews";
 
 const route = useRoute();
 const { isAuthenticated, user, isAdministrator, isWriter } = useAuth();
-const { init: initNews } = useNews();
+const { init: initNews, sliderArticles } = useNews();
 
 const drawer = ref(false);
 const isLoading = ref(true);
-const activeSliderTitle = ref("");
+const showSearch = ref(false);
+const currentTickerIndex = ref(0);
 
 // Filter out the "home" category as it's handled separately
 const categories = ref(categoriesData.filter((cat) => cat.slug !== "home"));
 
 // Check if navigation should be hidden (e.g., on login page)
 const hideNavigation = computed(() => route.meta.hideNavigation === true);
+
+// Check if we're on the home page
+const isHomePage = computed(() => route.path === '/');
+
+// Check if News tab should be active (Home, Category, or Post pages)
+const isNewsActive = computed(() => {
+  const path = route.path;
+  return path === '/' || path.startsWith('/category/') || path.startsWith('/post/');
+});
+
+// Current ticker title
+const currentTickerTitle = computed(() => {
+  if (sliderArticles.value.length === 0) return 'Loading news...';
+  return sliderArticles.value[currentTickerIndex.value]?.title || 'Channel July 36';
+});
+
+// Auto-cycle ticker
+let tickerInterval: number | undefined;
+
+const startTickerCycle = () => {
+  if (tickerInterval) clearInterval(tickerInterval);
+  
+  tickerInterval = window.setInterval(() => {
+    if (sliderArticles.value.length > 0) {
+      currentTickerIndex.value = (currentTickerIndex.value + 1) % sliderArticles.value.length;
+    }
+  }, 5000); // Change every 5 seconds
+};
 
 // Get user initials
 const getUserInitials = (username?: string) => {
@@ -187,22 +242,68 @@ const getUserInitials = (username?: string) => {
   return username.substring(0, 2).toUpperCase();
 };
 
-// Provide a function to update the active slider title
-const updateActiveSliderTitle = (title: string) => {
-  activeSliderTitle.value = title;
-};
-provide("updateActiveSliderTitle", updateActiveSliderTitle);
-
 onMounted(() => {
   initNews();
+  startTickerCycle(); // Start ticker cycling
+  
+  // Listen for slider changes from Home.vue
+  window.addEventListener('slider-change', (event: Event) => {
+    const customEvent = event as CustomEvent;
+    currentTickerIndex.value = customEvent.detail;
+    // Restart ticker cycle when manually changed
+    startTickerCycle();
+  });
+  
   setTimeout(() => {
     isLoading.value = false;
   }, 2500); // 2.5 second delay
 });
+
+onUnmounted(() => {
+  if (tickerInterval) clearInterval(tickerInterval);
+  // Remove event listener
+  window.removeEventListener('slider-change', () => {});
+});
 </script>
 
 <style scoped>
-/* ... (styles omitted for brevity) ... */
+/* News Ticker Styles */
+.news-ticker {
+  width: 100%;
+  min-height: 40px;
+  padding-top: 8px;
+  border-top: 1px solid #B71C1C;
+  border-bottom: 1px solid #A00003;
+}
+
+.news-ticker-text {
+  display: flex;
+  align-items: center;
+  color: #C62828 !important;
+}
+
+.news-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+  max-width: 100%;
+}
+
+/* Slide transition styles */
+.slide-enter-active, .slide-leave-active {
+  transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+.slide-enter-from {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.slide-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+/* Splash Screen */
 .splash-overlay {
   position: fixed;
   top: 0;

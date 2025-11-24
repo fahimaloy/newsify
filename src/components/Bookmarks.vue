@@ -84,19 +84,36 @@ const fetchBookmarkedPosts = async () => {
 
       if (response.ok) {
         const serverBookmarks = await response.json();
-        bookmarkedPosts.value = serverBookmarks.map((b: any) => b.post);
+        bookmarkedPosts.value = serverBookmarks.map((b: any) => b.post).filter((p: any) => p != null);
+      } else {
+        console.error('Failed to fetch bookmarks from server');
+        // Fallback to fetching individual posts
+        await fetchPostsByIds(bookmarkIds);
       }
     } else {
       // For unauthenticated users, fetch posts by IDs
-      const promises = bookmarkIds.map(id =>
-        fetch(`${API_BASE_URL}/api/v1/posts/${id}`).then(r => r.json())
-      );
-      bookmarkedPosts.value = await Promise.all(promises);
+      await fetchPostsByIds(bookmarkIds);
     }
   } catch (e) {
     console.error('Failed to fetch bookmarked posts', e);
+    bookmarkedPosts.value = [];
   } finally {
     loading.value = false;
+  }
+};
+
+const fetchPostsByIds = async (ids: number[]) => {
+  try {
+    const promises = ids.map(id =>
+      fetch(`${API_BASE_URL}/api/v1/posts/${id}`)
+        .then(r => r.ok ? r.json() : null)
+        .catch(() => null)
+    );
+    const results = await Promise.all(promises);
+    bookmarkedPosts.value = results.filter(p => p != null);
+  } catch (e) {
+    console.error('Failed to fetch posts by IDs', e);
+    bookmarkedPosts.value = [];
   }
 };
 
