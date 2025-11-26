@@ -329,17 +329,53 @@ const fetchPost = async () => {
     const API_BASE_URL = (import.meta as any).env.VITE_API_BASE_URL || "http://localhost:8000";
     const response = await fetch(`${API_BASE_URL}/api/v1/posts/${id}`);
     
-    if (!response.ok) {
+    if (response.ok) {
+      // Successfully fetched from server
+      post.value = await response.json();
+      
+      // Save to cache for offline access
+      const { savePost } = await import('../services/db');
+      await savePost(post.value);
+    } else if (response.status === 404) {
+      // Post not found on server, try to load from cache
+      console.log('Post not found on server, loading from cache...');
+      const { getPost } = await import('../services/db');
+      const cachedPost = await getPost(id);
+      
+      if (cachedPost) {
+        post.value = cachedPost;
+        console.log('Loaded post from cache');
+      } else {
+        throw new Error('Post not found');
+      }
+    } else {
       throw new Error('Failed to load post');
     }
-    
-    post.value = await response.json();
     
     // Fetch related posts and comments
     await Promise.all([fetchRelatedPosts(), fetchComments()]);
   } catch (err) {
     console.error(err);
-    error.value = "Failed to load post. Please try again.";
+    
+    // Last resort: try to load from cache
+    try {
+      const { getPost } = await import('../services/db');
+      const cachedPost = await getPost(id);
+      
+      if (cachedPost) {
+        post.value = cachedPost;
+        error.value = null; // Clear error since we found cached data
+        console.log('Loaded post from cache (error fallback)');
+        
+        // Still try to fetch related posts and comments
+        await Promise.all([fetchRelatedPosts(), fetchComments()]);
+      } else {
+        error.value = "Failed to load post. Please try again.";
+      }
+    } catch (cacheErr) {
+      console.error('Cache error:', cacheErr);
+      error.value = "Failed to load post. Please try again.";
+    }
   } finally {
     loading.value = false;
   }

@@ -14,7 +14,7 @@
           <v-col cols="12" sm="8" md="6" lg="4" class="pa-6">
             <!-- Logo and Welcome -->
             <div class="text-center mb-8">
-              <img src="/logo.svg" alt="Logo" class="login-logo mb-4" />
+              <img src="/logo-with-bg.png" alt="Logo" class="login-logo mb-4" />
               <h1 class="text-h4 font-weight-bold mb-2" style="color: #c62828">
                 Welcome Back
               </h1>
@@ -178,7 +178,7 @@ const handleLogin = async () => {
 }
 
 .login-logo {
-  height: 80px;
+  height: 100px;
   max-width: 200px;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }

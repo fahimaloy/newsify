@@ -169,7 +169,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useAuth } from '../composables/useAuth';
 import { newsAPI } from '../services/api';
 
@@ -192,7 +192,7 @@ const headers = [
   { title: 'Author', key: 'author', sortable: true },
   { title: 'Status', key: 'status', sortable: true },
   { title: 'Date', key: 'created_at', sortable: true },
-  { title: 'Actions', key: 'actions', sortable: false, align: 'end' },
+  { title: 'Actions', key: 'actions', sortable: false, align: 'end' as const },
 ];
 
 const fetchPosts = async () => {

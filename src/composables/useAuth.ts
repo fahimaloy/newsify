@@ -32,14 +32,19 @@ interface LoginCredentials {
 
 interface AuthResponse {
   access_token: string;
+  refresh_token: string;
   token_type: string;
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-// Auth state
+// Auth state - persisted in localStorage
 const token = ref<string | null>(localStorage.getItem('auth_token'));
+const refreshToken = ref<string | null>(localStorage.getItem('refresh_token'));
 const user = ref<User | null>(null);
+
+// Token refresh timer
+let refreshTimer: number | null = null;
 
 // Computed
 const isAuthenticated = computed(() => !!token.value);
@@ -62,14 +67,77 @@ const loadUserFromToken = async () => {
     
     if (response.ok) {
       user.value = await response.json();
+      // Start refresh timer
+      startRefreshTimer();
     } else {
-      // Token is invalid, clear it
-      logout();
+      // Token is invalid, try to refresh
+      if (refreshToken.value) {
+        await refreshAccessToken();
+      } else {
+        await logout();
+      }
     }
   } catch (error) {
     console.error('Failed to load user:', error);
-    logout();
+    // Try to refresh token
+    if (refreshToken.value) {
+      await refreshAccessToken();
+    } else {
+      await logout();
+    }
   }
+};
+
+// Refresh access token using refresh token
+const refreshAccessToken = async () => {
+  if (!refreshToken.value) {
+    await logout();
+    return false;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/v1/users/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ refresh_token: refreshToken.value })
+    });
+
+    if (response.ok) {
+      const data: AuthResponse = await response.json();
+      token.value = data.access_token;
+      refreshToken.value = data.refresh_token;
+      localStorage.setItem('auth_token', data.access_token);
+      localStorage.setItem('refresh_token', data.refresh_token);
+      
+      // Reload user data
+      await loadUserFromToken();
+      return true;
+    } else {
+      // Refresh token is invalid, logout
+      await logout();
+      return false;
+    }
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    await logout();
+    return false;
+  }
+};
+
+// Start automatic token refresh (refresh 1 day before expiry)
+const startRefreshTimer = () => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+  }
+
+  // Refresh token every 19 days (1 day before 20-day expiry)
+  const refreshInterval = 19 * 24 * 60 * 60 * 1000; // 19 days in milliseconds
+  
+  refreshTimer = window.setInterval(async () => {
+    await refreshAccessToken();
+  }, refreshInterval);
 };
 
 // Login
@@ -91,10 +159,21 @@ const login = async (credentials: LoginCredentials): Promise<{ success: boolean;
     
     const data: AuthResponse = await response.json();
     token.value = data.access_token;
+    refreshToken.value = data.refresh_token;
     localStorage.setItem('auth_token', data.access_token);
+    localStorage.setItem('refresh_token', data.refresh_token);
     
     // Load user data
     await loadUserFromToken();
+    
+    // Sync bookmarks after successful login
+    try {
+      const { useBookmarks } = await import('./useBookmarks');
+      const { syncPendingToServer } = useBookmarks();
+      await syncPendingToServer();
+    } catch (err) {
+      console.error('Failed to sync bookmarks on login:', err);
+    }
     
     return { success: true };
   } catch (error) {
@@ -104,10 +183,27 @@ const login = async (credentials: LoginCredentials): Promise<{ success: boolean;
 };
 
 // Logout
-const logout = () => {
+const logout = async () => {
+  // Stop refresh timer
+  if (refreshTimer) {
+    clearInterval(refreshTimer);
+    refreshTimer = null;
+  }
+
+  // Clear bookmarks on logout
+  try {
+    const { useBookmarks } = await import('./useBookmarks');
+    const { clearLocalBookmarks } = useBookmarks();
+    clearLocalBookmarks();
+  } catch (err) {
+    console.error('Failed to clear bookmarks on logout:', err);
+  }
+  
   token.value = null;
+  refreshToken.value = null;
   user.value = null;
   localStorage.removeItem('auth_token');
+  localStorage.removeItem('refresh_token');
 };
 
 // Get auth header
@@ -122,6 +218,7 @@ export function useAuth() {
   return {
     user,
     token,
+    refreshToken,
     isAuthenticated,
     isAdministrator,
     isSubscriber,
@@ -131,6 +228,7 @@ export function useAuth() {
     login,
     logout,
     getAuthHeader,
-    loadUserFromToken
+    loadUserFromToken,
+    refreshAccessToken
   };
 }

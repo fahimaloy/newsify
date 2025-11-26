@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "channel-july-36",
+  "productName": "Channel July 36",
   "version": "0.1.0",
-  "identifier": "com.cj36.channel-july-36",
+  "identifier": "com.cj36.channeljuly36",
   "build": {
     "beforeDevCommand": "bun run dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "channel-july-36",
-        "width": 800,
-        "height": 600
+        "title": "Channel July 36",
+        "width": 400,
+        "height": 800,
+        "fullscreen": false,
+        "resizable": true
       }
     ],
     "security": {

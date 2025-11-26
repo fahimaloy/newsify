@@ -25,6 +25,7 @@ const routes = [
   { path: '/edit-post/:id', component: CreatePost },
   { path: '/edit-profile', component: () => import('../components/EditProfile.vue') },
   { path: '/category/:slug', component: () => import('../components/CategoryPage.vue') },
+  { path: '/settings', component: () => import('../components/Settings.vue') },
 ]
 
 const router = createRouter({

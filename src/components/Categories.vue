@@ -197,7 +197,7 @@ import CategoryTreeItem from "./CategoryTreeItem.vue";
 
 const { getAuthHeader } = useAuth();
 
-const categories = ref<Category[]>([]);
+const categories = ref<ExtendedCategory[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const saving = ref(false);
@@ -250,11 +250,10 @@ const fetchCategories = async () => {
   loading.value = true;
   error.value = null;
   try {
-    categories.value = await newsAPI.getCategories();
     // Initialize order if missing
-    categories.value = categories.value.map((c, index) => ({
+    categories.value = (await newsAPI.getCategories()).map((c, index) => ({
       ...c,
-      order: c.order !== undefined ? c.order : index
+      order: (c as any).order !== undefined ? (c as any).order : index
     }));
     hasUnsavedChanges.value = false;
   } catch (err) {

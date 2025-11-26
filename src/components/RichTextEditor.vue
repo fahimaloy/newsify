@@ -121,7 +121,7 @@
       </v-btn-group>
     </div>
 
-    <editor-content :editor="editor" class="editor-content" />
+    <editor-content v-if="editor" :editor="editor as any" class="editor-content" />
   </div>
 </template>
 
@@ -166,7 +166,7 @@ editor.value = new Editor({
 watch(() => props.modelValue, (value) => {
   const isSame = editor.value?.getHTML() === value;
   if (!isSame && editor.value) {
-    editor.value.commands.setContent(value, false);
+    editor.value.commands.setContent(value, { emitUpdate: false });
   }
 });
 

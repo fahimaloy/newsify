@@ -1,210 +1,212 @@
 <template>
-  <v-container fluid class="fill-height pa-0">
-    <v-row no-gutters class="fill-height">
-      <!-- Left Side - Image/Branding -->
-      <v-col
-        cols="12"
-        md="6"
-        class="bg-red-darken-4 d-none d-md-flex align-center justify-center position-relative"
-      >
-        <div class="text-center text-white pa-10" style="z-index: 2">
-          <img
-            src="/logo.svg"
-            alt="Channel July 36"
-            style="height: 120px"
-            class="mb-6 animate-logo"
-          />
-          <h1 class="text-h3 font-weight-bold mb-2">Join Our Community</h1>
-          <p class="text-h6 opacity-80">Stay updated with the latest news</p>
-        </div>
+  <v-app>
+    <!-- Header with back button -->
+    <v-app-bar color="#C62828" elevation="0" app>
+      <v-btn icon @click="goBack" class="text-white">
+        <v-icon>mdi-arrow-left</v-icon>
+      </v-btn>
+      <v-toolbar-title class="text-white">Sign Up</v-toolbar-title>
+    </v-app-bar>
 
-        <!-- Decorative Elements -->
-        <div class="circle-decoration circle-1"></div>
-        <div class="circle-decoration circle-2"></div>
-      </v-col>
-
-      <!-- Right Side - Signup Form -->
-      <v-col
-        cols="12"
-        md="6"
-        class="d-flex align-center justify-center bg-grey-lighten-5"
-      >
-        <v-card
-          width="100%"
-          max-width="500"
-          class="pa-8 ma-4 rounded-xl"
-          elevation="4"
-        >
-          <div class="text-center mb-8">
-            <h2 class="text-h4 font-weight-bold text-red-darken-3 mb-2">
-              {{ step === 1 ? "Create Account" : "Verify Email" }}
-            </h2>
-            <p class="text-body-1 text-grey-darken-1">
-              {{
-                step === 1
-                  ? "Sign up to get started"
-                  : "Enter the code sent to your email"
-              }}
-            </p>
-          </div>
-
-          <!-- Step 1: Signup Form -->
-          <v-form
-            v-if="step === 1"
-            @submit.prevent="handleSignup"
-            ref="formRef"
-          >
-            <v-text-field
-              v-model="username"
-              label="Username"
-              prepend-inner-icon="mdi-account"
-              variant="outlined"
-              color="red-darken-3"
-              :rules="[rules.required, rules.min3]"
-              class="mb-2"
-            ></v-text-field>
-
-            <v-text-field
-              v-model="email"
-              label="Email"
-              prepend-inner-icon="mdi-email"
-              variant="outlined"
-              color="red-darken-3"
-              :rules="[rules.required, rules.email]"
-              class="mb-2"
-            ></v-text-field>
-
-            <v-text-field
-              v-model="password"
-              label="Password"
-              prepend-inner-icon="mdi-lock"
-              :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-              @click:append-inner="showPassword = !showPassword"
-              :type="showPassword ? 'text' : 'password'"
-              variant="outlined"
-              color="red-darken-3"
-              :rules="[rules.required, rules.min6]"
-              class="mb-2"
-            ></v-text-field>
-
-            <v-text-field
-              v-model="confirmPassword"
-              label="Confirm Password"
-              prepend-inner-icon="mdi-lock-check"
-              :type="showPassword ? 'text' : 'password'"
-              variant="outlined"
-              color="red-darken-3"
-              :rules="[rules.required, rules.matchPassword]"
-              class="mb-2"
-            ></v-text-field>
-
-            <v-text-field
-              v-model="phone"
-              label="Phone Number (Optional)"
-              prepend-inner-icon="mdi-phone"
-              variant="outlined"
-              color="red-darken-3"
-              class="mb-2"
-            ></v-text-field>
-
-            <v-checkbox
-              v-model="newsletter"
-              label="Subscribe to email newsletter"
-              color="red-darken-3"
-              hide-details
-              class="mb-6"
-            ></v-checkbox>
-
-            <v-alert
-              v-if="error"
-              type="error"
-              variant="tonal"
-              class="mb-4"
-              closable
-            >
-              {{ error }}
-            </v-alert>
-
-            <v-btn
-              type="submit"
-              block
-              color="red-darken-3"
-              size="large"
-              :loading="loading"
-              class="text-none text-subtitle-1 font-weight-bold rounded-lg"
-              elevation="2"
-            >
-              Sign Up
-            </v-btn>
-
-            <div class="text-center mt-6">
-              <p class="text-body-2 text-grey-darken-1">
-                Already have an account?
-                <router-link
-                  to="/login"
-                  class="text-red-darken-3 text-decoration-none font-weight-bold"
-                >
-                  Login
-                </router-link>
+    <v-main class="signup-main">
+      <v-container fluid class="fill-height pa-0">
+        <v-row class="fill-height ma-0" align="center" justify="center">
+          <v-col cols="12" sm="8" md="6" lg="4" class="pa-6">
+            <!-- Logo and Welcome -->
+            <div class="text-center mb-8">
+              <img src="/logo.svg" alt="Logo" class="signup-logo mb-4" />
+              <h1 class="text-h4 font-weight-bold mb-2" style="color: #c62828">
+                {{ step === 1 ? "Create Account" : "Verify Email" }}
+              </h1>
+              <p class="text-body-1 text-grey">
+                {{
+                  step === 1
+                    ? "Join Channel July 36 today"
+                    : "Enter the code sent to your email"
+                }}
               </p>
             </div>
-          </v-form>
 
-          <!-- Step 2: Verification Form -->
-          <v-form
-            v-else
-            @submit.prevent="handleVerification"
-            ref="verifyFormRef"
-          >
-            <v-otp-input
-              v-model="verificationCode"
-              length="6"
-              variant="outlined"
-              color="red-darken-3"
-              class="mb-6"
-            ></v-otp-input>
+            <!-- Signup Form -->
+            <v-card elevation="8" rounded="lg" class="pa-6">
+              <!-- Step 1: Signup Form -->
+              <v-form
+                v-if="step === 1"
+                @submit.prevent="handleSignup"
+                ref="formRef"
+              >
+                <v-text-field
+                  v-model="username"
+                  label="Username"
+                  prepend-inner-icon="mdi-account"
+                  variant="outlined"
+                  color="#C62828"
+                  :rules="[rules.required, rules.min3]"
+                  :disabled="loading"
+                  class="mb-2"
+                ></v-text-field>
 
-            <v-alert
-              v-if="error"
-              type="error"
-              variant="tonal"
-              class="mb-4"
-              closable
-            >
-              {{ error }}
-            </v-alert>
+                <v-text-field
+                  v-model="email"
+                  label="Email"
+                  prepend-inner-icon="mdi-email"
+                  variant="outlined"
+                  color="#C62828"
+                  :rules="[rules.required, rules.email]"
+                  :disabled="loading"
+                  class="mb-2"
+                ></v-text-field>
 
-            <v-btn
-              type="submit"
-              block
-              color="red-darken-3"
-              size="large"
-              :loading="loading"
-              class="text-none text-subtitle-1 font-weight-bold rounded-lg mb-4"
-              elevation="2"
-              :disabled="verificationCode.length !== 6"
-            >
-              Verify
-            </v-btn>
+                <v-text-field
+                  v-model="password"
+                  label="Password"
+                  prepend-inner-icon="mdi-lock"
+                  :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="showPassword = !showPassword"
+                  :type="showPassword ? 'text' : 'password'"
+                  variant="outlined"
+                  color="#C62828"
+                  :rules="[rules.required, rules.min6]"
+                  :disabled="loading"
+                  class="mb-2"
+                ></v-text-field>
 
-            <v-btn
-              variant="text"
-              block
-              color="grey-darken-1"
-              @click="resendCode"
-              :disabled="resendDisabled"
-            >
-              {{ resendDisabled ? `Resend in ${resendTimer}s` : "Resend Code" }}
-            </v-btn>
-          </v-form>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+                <v-text-field
+                  v-model="confirmPassword"
+                  label="Confirm Password"
+                  prepend-inner-icon="mdi-lock-check"
+                  :type="showPassword ? 'text' : 'password'"
+                  variant="outlined"
+                  color="#C62828"
+                  :rules="[rules.required, rules.matchPassword]"
+                  :disabled="loading"
+                  class="mb-2"
+                ></v-text-field>
+
+                <v-text-field
+                  v-model="phone"
+                  label="Phone Number (Optional)"
+                  prepend-inner-icon="mdi-phone"
+                  variant="outlined"
+                  color="#C62828"
+                  :disabled="loading"
+                  class="mb-2"
+                ></v-text-field>
+
+                <v-checkbox
+                  v-model="newsletter"
+                  label="Subscribe to email newsletter"
+                  color="#C62828"
+                  hide-details
+                  :disabled="loading"
+                  class="mb-4"
+                ></v-checkbox>
+
+                <v-alert
+                  v-if="error"
+                  type="error"
+                  variant="tonal"
+                  closable
+                  @click:close="error = ''"
+                  class="mb-4"
+                >
+                  {{ error }}
+                </v-alert>
+
+                <v-btn
+                  type="submit"
+                  block
+                  size="large"
+                  color="#C62828"
+                  :loading="loading"
+                  :disabled="loading"
+                  class="mb-3"
+                  elevation="2"
+                >
+                  <v-icon left class="mr-2">mdi-account-plus</v-icon>
+                  Sign Up
+                </v-btn>
+
+                <v-divider class="my-4"></v-divider>
+
+                <div class="text-center">
+                  <p class="text-body-2 text-grey-darken-1">
+                    Already have an account?
+                    <router-link
+                      to="/login"
+                      class="text-red-darken-3 text-decoration-none font-weight-bold"
+                    >
+                      Login
+                    </router-link>
+                  </p>
+                </div>
+              </v-form>
+
+              <!-- Step 2: Verification Form -->
+              <v-form
+                v-else
+                @submit.prevent="handleVerification"
+                ref="verifyFormRef"
+              >
+                <v-otp-input
+                  v-model="verificationCode"
+                  length="6"
+                  variant="outlined"
+                  color="#C62828"
+                  class="mb-6"
+                ></v-otp-input>
+
+                <v-alert
+                  v-if="error"
+                  type="error"
+                  variant="tonal"
+                  closable
+                  @click:close="error = ''"
+                  class="mb-4"
+                >
+                  {{ error }}
+                </v-alert>
+
+                <v-btn
+                  type="submit"
+                  block
+                  color="#C62828"
+                  size="large"
+                  :loading="loading"
+                  :disabled="verificationCode.length !== 6 || loading"
+                  class="mb-4"
+                  elevation="2"
+                >
+                  Verify
+                </v-btn>
+
+                <v-btn
+                  variant="text"
+                  block
+                  color="grey-darken-1"
+                  @click="resendCode"
+                  :disabled="resendDisabled || loading"
+                >
+                  {{ resendDisabled ? `Resend in ${resendTimer}s` : "Resend Code" }}
+                </v-btn>
+              </v-form>
+            </v-card>
+
+            <!-- Footer -->
+            <div class="text-center mt-6">
+              <p class="text-caption text-grey">
+                © 2025 Channel July 36. All rights reserved.
+              </p>
+            </div>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth } from "../composables/useAuth";
 
@@ -235,6 +237,10 @@ const rules = {
   min6: (v: string) => v.length >= 6 || "Min 6 characters",
   email: (v: string) => /.+@.+\..+/.test(v) || "E-mail must be valid",
   matchPassword: (v: string) => v === password.value || "Passwords must match",
+};
+
+const goBack = () => {
+  router.push("/");
 };
 
 const startResendTimer = () => {
@@ -360,39 +366,38 @@ const resendCode = async () => {
 </script>
 
 <style scoped>
-.circle-decoration {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+.signup-main {
+  background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+  min-height: 100vh;
 }
 
-.circle-1 {
-  width: 300px;
-  height: 300px;
-  top: -50px;
-  left: -50px;
+.signup-logo {
+  height: 80px;
+  max-width: 200px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
-.circle-2 {
-  width: 200px;
-  height: 200px;
-  bottom: 50px;
-  right: 50px;
+.fill-height {
+  height: 100%;
 }
 
-.animate-logo {
-  animation: float 3s ease-in-out infinite;
+/* Card hover effect */
+.v-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+.v-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Button animation */
+.v-btn {
+  transition: all 0.3s ease;
+}
+
+.v-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(198, 40, 40, 0.3);
 }
 </style>

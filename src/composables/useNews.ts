@@ -15,11 +15,29 @@ export function useNews() {
         
         loading.value = true;
         try {
-            // Load from local DB first
-            const cachedPosts = await getPosts();
-            if (cachedPosts && cachedPosts.length > 0) {
-                posts.value = cachedPosts;
+            // Clean up expired cache first (posts older than 10 hours)
+            try {
+                const { pruneExpiredPosts } = await import('../services/db');
+                await pruneExpiredPosts();
+                console.log('Expired posts cleaned up');
+            } catch (pruneErr) {
+                console.error('Error pruning expired posts:', pruneErr);
+                // Continue even if pruning fails
             }
+            
+            // Load from local DB first
+            try {
+                const cachedPosts = await getPosts();
+                if (cachedPosts && cachedPosts.length > 0) {
+                    posts.value = cachedPosts;
+                    console.log(`Loaded ${cachedPosts.length} posts from cache`);
+                }
+            } catch (cacheErr) {
+                console.error('Error loading from cache:', cacheErr);
+                // Continue with empty posts, will try to sync
+                posts.value = [];
+            }
+            
             initialized.value = true;
             
             // Sync if online
@@ -77,6 +95,27 @@ export function useNews() {
                 await prunePosts(200);
                 // Reload from DB to get sorted list
                 posts.value = await getPosts();
+
+                // Check for push notifications
+                try {
+                    const pushEnabled = localStorage.getItem('push_notifications') === 'true';
+                    if (pushEnabled) {
+                        const { isPermissionGranted, sendNotification } = await import('@tauri-apps/plugin-notification');
+                        if (await isPermissionGranted()) {
+                            const latestPost = data.posts[0]; // Assuming API returns sorted or we take the first
+                            const count = data.posts.length;
+                            
+                            sendNotification({
+                                title: 'New News Available',
+                                body: count === 1 
+                                    ? `New article: ${latestPost.title}` 
+                                    : `${count} new articles available. Latest: ${latestPost.title}`
+                            });
+                        }
+                    }
+                } catch (notifyErr) {
+                    console.error('Notification error:', notifyErr);
+                }
             }
             
         } catch (e: any) {

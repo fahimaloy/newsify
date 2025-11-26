@@ -100,18 +100,34 @@
                     </template>
                   </v-select>
 
-                  <!-- Scheduling -->
-                  <v-text-field
-                    v-model="form.scheduled_at"
-                    label="Schedule Publication (Optional)"
-                    type="datetime-local"
-                    variant="outlined"
+                  <!-- Scheduling Toggle -->
+                  <v-switch
+                    v-model="isScheduled"
+                    label="Schedule Publication"
                     color="primary"
-                    density="comfortable"
-                    prepend-inner-icon="mdi-calendar-clock"
-                    hint="Leave empty to publish immediately (if status is Published)"
-                    persistent-hint
-                  ></v-text-field>
+                    inset
+                    hide-details
+                    class="mb-2"
+                  ></v-switch>
+
+                  <!-- Date Time Picker (Visible only when scheduled) -->
+                  <v-expand-transition>
+                    <div v-if="isScheduled">
+                      <v-text-field
+                        v-model="form.scheduled_at"
+                        label="Select Date & Time"
+                        type="datetime-local"
+                        variant="outlined"
+                        color="primary"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-calendar-clock"
+                        :rules="[rules.required]"
+                        hint="Post will be published automatically at this time"
+                        persistent-hint
+                        class="mb-4"
+                      ></v-text-field>
+                    </div>
+                  </v-expand-transition>
                 </v-col>
 
                 <!-- Topics -->
@@ -370,6 +386,29 @@ const form = ref({
   status: "draft",
 });
 
+const isScheduled = ref(false);
+
+// Watch for scheduling toggle
+watch(isScheduled, (newVal) => {
+  if (newVal) {
+    form.value.status = 'published';
+  } else {
+    form.value.scheduled_at = "";
+  }
+});
+
+// Watch for status changes - if user changes status away from published while scheduled, turn off schedule?
+// Or force status to published? User requirement: "if enabled scheduling, post status must needs to be published"
+watch(() => form.value.status, (newVal) => {
+  if (isScheduled.value && newVal !== 'published') {
+    // If user tries to change status while scheduled, turn off scheduling or revert status
+    // Let's turn off scheduling to avoid confusion, or we could force status back.
+    // Given the requirement, it implies scheduling REQUIRES published.
+    // So if they change status, they are implicitly disabling scheduling.
+    isScheduled.value = false;
+  }
+});
+
 const isEditing = computed(() => !!route.params.id);
 
 const rules = {
@@ -472,6 +511,16 @@ const fetchPostData = async () => {
     form.value.topic_ids = post.topics?.map((t: any) => t.id) || [];
     form.value.videoUrl = post.video_url || "";
     
+    if (post.scheduled_at) {
+      // Format for datetime-local input: YYYY-MM-DDTHH:mm
+      const date = new Date(post.scheduled_at);
+      // Adjust for timezone offset to show local time in input
+      const offset = date.getTimezoneOffset() * 60000;
+      const localISOTime = (new Date(date.getTime() - offset)).toISOString().slice(0, 16);
+      form.value.scheduled_at = localISOTime;
+      isScheduled.value = true;
+    }
+
     if (post.image) {
       // Assuming newsAPI.getImageURL or similar logic
       form.value.imageUrl = newsAPI.getImageURL(post.image);
@@ -589,6 +638,7 @@ const resetForm = () => {
     scheduled_at: "",
     status: "draft",
   };
+  isScheduled.value = false;
   formRef.value?.reset();
   error.value = "";
   success.value = "";

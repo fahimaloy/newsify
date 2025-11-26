@@ -38,7 +38,10 @@
                 <div class="flex-grow-1">
                   <div class="d-flex align-center justify-space-between">
                     <h2 class="text-h4 mb-2">{{ user?.username }}</h2>
-                    <v-btn icon="mdi-pencil" variant="text" to="/edit-profile" color="grey-darken-1"></v-btn>
+                    <div>
+                      <v-btn icon="mdi-cog" variant="text" to="/settings" color="grey-darken-1" class="mr-2"></v-btn>
+                      <v-btn icon="mdi-pencil" variant="text" to="/edit-profile" color="grey-darken-1"></v-btn>
+                    </div>
                   </div>
                   <v-chip
                     :color="getRoleColor(user?.role)"

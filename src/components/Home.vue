@@ -65,7 +65,7 @@
         Load Sample Data
       </v-btn>
       <p class="text-caption text-grey-lighten-1 mt-4">
-        Make sure the backend server is running at {{ apiBaseUrl }}
+        Please check your internet connection or try again later.
       </p>
     </v-container>
 
@@ -204,9 +204,6 @@ const handleBookmarkToggle = async (postId: number) => {
   await toggleBookmark(postId);
   console.log('Bookmark toggled, current state:', isBookmarked(postId).value);
 };
-
-// API base URL for display
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 // Retry fetching from API
 const retryFetch = async () => {
