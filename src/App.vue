@@ -192,19 +192,6 @@
           </div>
           <span class="nav-label">Profile</span>
         </router-link>
-
-        <!-- Logout button for authenticated users -->
-        <div
-          v-if="isAuthenticated"
-          class="nav-item nav-item-logout"
-          @click="handleLogout"
-          style="cursor: pointer"
-        >
-          <div class="nav-icon-wrapper">
-            <v-icon>mdi-logout</v-icon>
-          </div>
-          <span class="nav-label">Logout</span>
-        </div>
       </div>
     </div>
 

@@ -141,6 +141,21 @@
               @update:items-per-page="itemsPerPage = $event"
               class="elevation-0"
             >
+              <template v-slot:item.image="{ item }">
+                <v-avatar size="40" rounded="lg" class="my-1">
+                  <v-img
+                    v-if="item.image"
+                    :src="getImageUrl(item.image)"
+                    cover
+                  >
+                    <template v-slot:placeholder>
+                      <v-icon size="20">mdi-image</v-icon>
+                    </template>
+                  </v-img>
+                  <v-icon v-else size="20" color="grey-lighten-1">mdi-image-off</v-icon>
+                </v-avatar>
+              </template>
+
               <template v-slot:item.title="{ item }">
                 <div class="text-truncate" style="max-width: 300px">
                   {{ item.title }}
@@ -455,6 +470,7 @@ const filters = ref({
 const statusOptions = ["draft", "pending", "published", "rejected", "scheduled"];
 
 const headers = [
+  { title: "Image", key: "image", sortable: false },
   { title: "Title", key: "title", sortable: true },
   { title: "Status", key: "status", sortable: true },
   { title: "Created", key: "created_at", sortable: true },
@@ -519,6 +535,14 @@ const formatDate = (dateString: string) => {
     month: "short",
     day: "numeric",
   });
+};
+
+const getImageUrl = (imagePath: string) => {
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+  if (imagePath.startsWith('http')) {
+    return imagePath;
+  }
+  return `${API_BASE_URL}${imagePath}`;
 };
 
 const fetchMyPosts = async () => {
